@@ -90,9 +90,9 @@ jobs:
 
       - name: Apply Sealed Secrets Application
         run: |
-          helm upgrade --install sealed-secrets-app \
+          helm template sealed-secrets-app \
             k8s/argocd/applications/sealed-secrets \
-            --namespace argocd
+            --namespace argocd | kubectl apply -f -
 
       - name: Wait for Sealed Secrets controller
         run: |
@@ -124,27 +124,29 @@ jobs:
 
       - name: Deploy ArgoCD Applications
         run: |
-          helm upgrade --install lb-controller-app \
+          helm template lb-controller-app \
             k8s/argocd/applications/lb-controller \
             --namespace argocd \
             --set clusterName=${{ inputs.cluster_name }} \
             --set awsRegion=${{ inputs.aws_region }} \
             --set vpcId=${{ inputs.vpc_id }} \
-            --set lbControllerRoleArn=${{ inputs.lb_controller_role_arn }}
+            --set lbControllerRoleArn=${{ inputs.lb_controller_role_arn }} \
+            | kubectl apply -f -
 
-          helm upgrade --install external-dns-app \
+          helm template external-dns-app \
             k8s/argocd/applications/external-dns \
-            --namespace argocd
+            --namespace argocd | kubectl apply -f -
 
-          helm upgrade --install kube-prometheus-stack-app \
+          helm template kube-prometheus-stack-app \
             k8s/argocd/applications/kube-prometheus-stack \
             --namespace argocd \
             --set grafana.acmCertificateArn=${{ inputs.grafana_acm_certificate_arn }} \
-            --set grafana.adminPassword=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+            --set grafana.adminPassword=${{ secrets.GRAFANA_ADMIN_PASSWORD }} \
+            | kubectl apply -f -
 
-          helm upgrade --install root-app \
+          helm template root-app \
             k8s/argocd/applications/root \
-            --namespace argocd
+            --namespace argocd | kubectl apply -f -
 
       - name: Wait for all applications to sync
         run: |

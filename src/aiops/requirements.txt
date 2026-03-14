@@ -1,0 +1,6 @@
+strands-agents[mcp]
+fastapi
+uvicorn[standard]
+pydantic
+nest_asyncio
+langfuse

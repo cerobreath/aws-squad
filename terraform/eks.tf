@@ -184,6 +184,24 @@ resource "aws_launch_template" "eks_nodes" {
     http_put_response_hop_limit = 2
   }
 
+  user_data = base64encode(<<-USERDATA
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+--BOUNDARY
+Content-Type: application/node.eks.aws
+
+---
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  kubelet:
+    config:
+      maxPods: 110
+--BOUNDARY--
+USERDATA
+  )
+
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -227,7 +245,7 @@ resource "aws_eks_node_group" "main" {
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_container_registry,
-    aws_eks_pod_identity_association.vpc_cni,
+    aws_eks_addon.vpc_cni,
   ]
 
   tags = {
@@ -245,7 +263,14 @@ resource "aws_eks_addon" "vpc_cni" {
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "PRESERVE"
 
-  depends_on = [aws_eks_node_group.main]
+  configuration_values = jsonencode({
+    env = {
+      ENABLE_PREFIX_DELEGATION = "true"
+      WARM_PREFIX_TARGET       = "1"
+    }
+  })
+
+  depends_on = [aws_eks_pod_identity_association.vpc_cni]
 }
 
 resource "aws_eks_addon" "coredns" {

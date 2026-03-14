@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOps Diagnostic Toolkit</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e1e4ed;
+    --text-dim: #8b8fa3;
+    --accent: #6c8cff;
+    --accent-hover: #8ba3ff;
+    --user-bg: #1e3a5f;
+    --agent-bg: #1a1d27;
+    --error: #ff6b6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+
+  header .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .config-bar {
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+
+  .config-bar label { font-size: 12px; color: var(--text-dim); }
+
+  .config-bar input, .config-bar select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+
+  .config-bar input:focus, .config-bar select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  #cluster-name { width: 200px; }
+
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .message {
+    max-width: 85%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .message.user {
+    align-self: flex-end;
+    background: var(--user-bg);
+    border-bottom-right-radius: 4px;
+  }
+
+  .message.agent {
+    align-self: flex-start;
+    background: var(--agent-bg);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+
+  .message.agent h1, .message.agent h2, .message.agent h3 {
+    margin-top: 12px;
+    margin-bottom: 6px;
+  }
+
+  .message.agent h2 { font-size: 16px; }
+  .message.agent h3 { font-size: 14px; color: var(--accent); }
+
+  .message.agent ul, .message.agent ol { padding-left: 20px; margin: 6px 0; }
+
+  .message.agent pre {
+    background: var(--bg);
+    padding: 10px 14px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 8px 0;
+    font-size: 12px;
+  }
+
+  .message.agent code { font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace; }
+  .message.agent p { margin: 6px 0; }
+
+  .message.error {
+    align-self: flex-start;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid var(--error);
+    color: var(--error);
+  }
+
+  .loading {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: var(--agent-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .loading .dots span {
+    animation: blink 1.4s infinite;
+    font-size: 20px;
+    line-height: 1;
+  }
+  .loading .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.2; }
+    40% { opacity: 1; }
+  }
+
+  .input-bar {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+
+  #query-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+  }
+
+  #query-input:focus { outline: none; border-color: var(--accent); }
+  #query-input::placeholder { color: var(--text-dim); }
+
+  #send-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  #send-btn:hover { background: var(--accent-hover); }
+  #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Daemon status bar */
+  .daemon-bar {
+    padding: 8px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+
+  .daemon-bar .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  .daemon-bar .dot.green { background: #51cf66; }
+  .daemon-bar .dot.red { background: #ff6b6b; }
+  .daemon-bar .dot.gray { background: #555; }
+
+  .daemon-bar .stat { color: var(--text); font-weight: 500; }
+
+  .daemon-bar button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .daemon-bar button:hover { border-color: var(--accent); color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AIOps Diagnostic Toolkit</h1>
+  <span class="badge">K8s + Grafana</span>
+</header>
+
+<div class="daemon-bar" id="daemon-bar">
+  <span><span class="dot gray" id="daemon-dot"></span> Daemon: <span class="stat" id="daemon-state">loading...</span></span>
+  <span>Last: <span class="stat" id="daemon-last">--</span></span>
+  <span>Status: <span class="stat" id="daemon-cluster-status">--</span></span>
+  <span>Checks: <span class="stat" id="daemon-checks">0</span></span>
+  <span>Alerts: <span class="stat" id="daemon-alerts">0</span></span>
+  <button id="daemon-toggle">Stop</button>
+</div>
+
+<div class="config-bar">
+  <label>Cluster</label>
+  <input type="text" id="cluster-name" placeholder="my-cluster (or set CLUSTER_NAME)">
+  <label>Model</label>
+  <select id="model-id">
+    <option value="amazon.nova-pro-v1:0">Amazon Nova Pro</option>
+    <option value="deepseek.v3.2">DeepSeek V3.2</option>
+    <option value="eu.anthropic.claude-sonnet-4-20250514-v1:0">Claude Sonnet 4</option>
+    <option value="eu.anthropic.claude-haiku-4-5-20251001-v1:0">Claude Haiku 4.5</option>
+  </select>
+</div>
+
+<div class="chat-area" id="chat-area"></div>
+
+<div class="input-bar">
+  <input type="text" id="query-input" placeholder="e.g. Why are pods crashing in the checkout namespace?" autocomplete="off">
+  <button id="send-btn">Investigate</button>
+</div>
+
+<script>
+const chatArea = document.getElementById('chat-area');
+const queryInput = document.getElementById('query-input');
+const sendBtn = document.getElementById('send-btn');
+const clusterInput = document.getElementById('cluster-name');
+const modelSelect = document.getElementById('model-id');
+
+function addMessage(text, type) {
+  const div = document.createElement('div');
+  div.className = `message ${type}`;
+  if (type === 'agent') {
+    div.innerHTML = marked.parse(text);
+  } else {
+    div.textContent = text;
+  }
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  return div;
+}
+
+function showLoading() {
+  const div = document.createElement('div');
+  div.className = 'loading';
+  div.id = 'loading-indicator';
+  div.innerHTML = `Agents investigating<span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function hideLoading() {
+  const el = document.getElementById('loading-indicator');
+  if (el) el.remove();
+}
+
+async function investigate() {
+  const query = queryInput.value.trim();
+  if (!query) return;
+
+  addMessage(query, 'user');
+  queryInput.value = '';
+  sendBtn.disabled = true;
+  showLoading();
+
+  try {
+    const resp = await fetch('/api/investigate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        cluster_name: clusterInput.value.trim(),
+        model_id: modelSelect.value,
+      }),
+    });
+
+    hideLoading();
+    const data = await resp.json();
+
+    if (data.status === 'success') {
+      addMessage(data.result, 'agent');
+    } else {
+      addMessage(data.result, 'error');
+    }
+  } catch (err) {
+    hideLoading();
+    addMessage(`Network error: ${err.message}`, 'error');
+  } finally {
+    sendBtn.disabled = false;
+    queryInput.focus();
+  }
+}
+
+sendBtn.addEventListener('click', investigate);
+queryInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    investigate();
+  }
+});
+
+queryInput.focus();
+
+// --- Daemon status polling ---
+const daemonDot = document.getElementById('daemon-dot');
+const daemonState = document.getElementById('daemon-state');
+const daemonLast = document.getElementById('daemon-last');
+const daemonClusterStatus = document.getElementById('daemon-cluster-status');
+const daemonChecks = document.getElementById('daemon-checks');
+const daemonAlerts = document.getElementById('daemon-alerts');
+const daemonToggle = document.getElementById('daemon-toggle');
+
+async function refreshDaemon() {
+  try {
+    const r = await fetch('/api/daemon/status');
+    const d = await r.json();
+    daemonState.textContent = d.running ? 'running' : 'stopped';
+    daemonDot.className = 'dot ' + (d.running ? (d.last_status === 'healthy' ? 'green' : d.last_status === 'unhealthy' ? 'red' : 'gray') : 'gray');
+    daemonLast.textContent = d.last_check ? new Date(d.last_check).toLocaleTimeString() : '--';
+    daemonClusterStatus.textContent = d.last_summary || '--';
+    daemonChecks.textContent = d.checks_total;
+    daemonAlerts.textContent = d.alerts_fired;
+    daemonToggle.textContent = d.running ? 'Stop' : 'Start';
+  } catch {}
+}
+
+daemonToggle.addEventListener('click', async () => {
+  const action = daemonToggle.textContent === 'Stop' ? 'stop' : 'start';
+  await fetch(`/api/daemon/${action}`, { method: 'POST' });
+  setTimeout(refreshDaemon, 500);
+});
+
+refreshDaemon();
+setInterval(refreshDaemon, 15000);
+</script>
+</body>
+</html>

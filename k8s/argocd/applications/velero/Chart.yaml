@@ -1,0 +1,4 @@
+apiVersion: v2
+name: velero-app
+description: ArgoCD Application for Velero backup and disaster recovery
+version: 0.1.0

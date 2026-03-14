@@ -1,2 +1,6 @@
 acmCertificateArn: ""
 hostname: ""
+ui:
+  image:
+    repository: ""
+    tag: ""

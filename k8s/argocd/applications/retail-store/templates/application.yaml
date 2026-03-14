@@ -28,6 +28,9 @@ spec:
           fullnameOverride: orders
         ui:
           fullnameOverride: ui
+          image:
+            repository: {{ .Values.ui.image.repository }}
+            tag: {{ .Values.ui.image.tag | quote }}
           app:
             endpoints:
               catalog: http://catalog:80

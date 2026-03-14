@@ -69,14 +69,14 @@ output "ecr_frontend_url" {
   value       = local.ecr_urls["frontend"]
 }
 
-output "ecr_productcatalogservice_url" {
-  description = "ECR repository URL for productcatalogservice"
-  value       = local.ecr_urls["productcatalogservice"]
+output "ecr_catalog_url" {
+  description = "ECR repository URL for catalog"
+  value       = local.ecr_urls["catalog"]
 }
 
-output "ecr_currencyservice_url" {
-  description = "ECR repository URL for currencyservice"
-  value       = local.ecr_urls["currencyservice"]
+output "ecr_checkout_url" {
+  description = "ECR repository URL for checkout"
+  value       = local.ecr_urls["checkout"]
 }
 
 output "cloudfront_distribution_id" {

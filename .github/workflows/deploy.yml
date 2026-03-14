@@ -7,6 +7,8 @@ on:
       - "k8s/**"
       - "terraform/**"
       - "src/ui/**"
+      - "src/catalog/**"
+      - "src/checkout/**"
       - ".github/workflows/**"
   workflow_dispatch:
     inputs:
@@ -52,8 +54,32 @@ jobs:
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
+  build-catalog-staging:
+    if: github.ref == 'refs/heads/staging' || inputs.environment == 'staging'
+    needs: [terraform-staging]
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      context: src/catalog
+      ecr_url: ${{ needs.terraform-staging.outputs.ecr_catalog_url }}
+      cache_scope: catalog
+      aws_region: eu-central-1
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+  build-checkout-staging:
+    if: github.ref == 'refs/heads/staging' || inputs.environment == 'staging'
+    needs: [terraform-staging]
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      context: src/checkout
+      ecr_url: ${{ needs.terraform-staging.outputs.ecr_checkout_url }}
+      cache_scope: checkout
+      aws_region: eu-central-1
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
   deploy-staging:
-    needs: [terraform-staging, build-ui-staging]
+    needs: [terraform-staging, build-ui-staging, build-catalog-staging, build-checkout-staging]
     uses: ./.github/workflows/_deploy-env.yml
     with:
       environment: staging
@@ -107,8 +133,32 @@ jobs:
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
+  build-catalog-production:
+    if: github.ref == 'refs/heads/main' || inputs.environment == 'production'
+    needs: [terraform-production]
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      context: src/catalog
+      ecr_url: ${{ needs.terraform-production.outputs.ecr_catalog_url }}
+      cache_scope: catalog
+      aws_region: eu-central-1
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+  build-checkout-production:
+    if: github.ref == 'refs/heads/main' || inputs.environment == 'production'
+    needs: [terraform-production]
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      context: src/checkout
+      ecr_url: ${{ needs.terraform-production.outputs.ecr_checkout_url }}
+      cache_scope: checkout
+      aws_region: eu-central-1
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
   deploy-production:
-    needs: [terraform-production, build-ui-production]
+    needs: [terraform-production, build-ui-production, build-catalog-production, build-checkout-production]
     uses: ./.github/workflows/_deploy-env.yml
     with:
       environment: production

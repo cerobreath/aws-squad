@@ -113,6 +113,7 @@ public class MockCatalogService implements CatalogService {
           productData.getName(),
           productData.getDescription(),
           productData.getPrice(),
+          productData.getRating(),
           productTags
         );
 
@@ -139,6 +140,7 @@ public class MockCatalogService implements CatalogService {
     private String name;
     private String description;
     private int price;
+    private int rating;
     private List<String> tags;
   }
 

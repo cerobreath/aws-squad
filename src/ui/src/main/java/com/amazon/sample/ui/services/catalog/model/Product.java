@@ -34,6 +34,8 @@ public class Product {
 
   private int price;
 
+  private int rating;
+
   private List<ProductTag> tags;
 
   public boolean hasTag(String tag) {

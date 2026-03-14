@@ -29,11 +29,8 @@
     </h3>
     <!-- Skull rating -->
     <div class="flex items-center gap-1 mb-3">
-      <i class="fas fa-skull" style="font-size: 0.55rem; color: #b8860b;"></i>
-      <i class="fas fa-skull" style="font-size: 0.55rem; color: #b8860b;"></i>
-      <i class="fas fa-skull" style="font-size: 0.55rem; color: #b8860b;"></i>
-      <i class="fas fa-skull" style="font-size: 0.55rem; color: #2a2a3e;"></i>
-      <i class="fas fa-skull" style="font-size: 0.55rem; color: #2a2a3e;"></i>
+      <i class="fas fa-skull" th:each="i : ${#numbers.sequence(1, 5)}"
+         th:style="${i <= product.rating} ? 'font-size: 0.55rem; color: #b8860b;' : 'font-size: 0.55rem; color: #2a2a3e;'"></i>
     </div>
     <p class="mb-4" style="color: #daa520; font-family: 'Cinzel', serif; font-size: 1rem;">
       $<th:block th:text="${product.price}">143.00</th:block>

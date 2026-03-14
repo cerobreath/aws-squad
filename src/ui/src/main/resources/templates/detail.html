@@ -1,0 +1,107 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (~{::body},'catalog')}"
+>
+  <body>
+    <section class="max-w-5xl mx-auto px-4 py-10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <!-- Product Image -->
+        <div class="rounded-lg overflow-hidden" style="border: 1px solid rgba(184, 134, 11, 0.2); background: #12121e;">
+          <img
+            src="https://via.placeholder.com/300"
+            alt="Product"
+            class="w-full h-auto"
+            th:src="@{/assets/img/products/{itemId}.jpg(itemId=${item.id})}"
+            style="border-bottom: 2px solid #b8860b;"
+          />
+          <div class="text-center py-3 text-xs" style="color: #5a4a2a; font-style: italic;" th:if="${!disableDemoWarnings}">
+            ++ By order of the Inquisition: demonstration only ++
+          </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="product-detail rounded-lg">
+          <!-- Gold accent line -->
+          <div style="width: 50px; height: 3px; background: linear-gradient(90deg, #daa520, #8a6508); margin-bottom: 1.5rem;"></div>
+
+          <h1 class="text-2xl font-bold mb-3" th:text="${item.name}" style="color: #daa520; font-family: 'Cinzel', serif; letter-spacing: 0.05em;">
+            Product name
+          </h1>
+
+          <div class="flex items-center gap-4 mb-4">
+            <span
+              class="inline-flex items-center px-3 py-1 rounded text-xs font-medium"
+              style="background: rgba(184, 134, 11, 0.1); color: #daa520; border: 1px solid rgba(184, 134, 11, 0.3); font-family: 'Cinzel', serif; letter-spacing: 0.05em;"
+              th:each="tag : ${item.tags}"
+              th:text="${tag.displayName}"
+            >Tag</span>
+            <!-- Skull rating -->
+            <div class="flex items-center gap-1">
+              <i class="fas fa-skull" style="color: #b8860b; font-size: 0.65rem;"></i>
+              <i class="fas fa-skull" style="color: #b8860b; font-size: 0.65rem;"></i>
+              <i class="fas fa-skull" style="color: #b8860b; font-size: 0.65rem;"></i>
+              <i class="fas fa-skull" style="color: #2a2a3e; font-size: 0.65rem;"></i>
+              <i class="fas fa-skull" style="color: #2a2a3e; font-size: 0.65rem;"></i>
+            </div>
+          </div>
+
+          <!-- Price -->
+          <div class="text-2xl mb-6" style="color: #daa520; font-family: 'Cinzel', serif;">
+            $<th:block th:text="${item.price}">124.00</th:block>
+          </div>
+
+          <!-- Description -->
+          <p class="mb-6 leading-relaxed" style="color: #9a8a6a;" th:text="${item.description}">
+            Product description
+          </p>
+
+          <!-- Divider -->
+          <div style="height: 1px; background: linear-gradient(90deg, #b8860b, transparent); margin-bottom: 1.5rem;"></div>
+
+          <!-- Quantity & Add to Cart -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-4">
+              <label class="font-medium text-sm" style="color: #b8a88a; font-family: 'Cinzel', serif;">
+                <th:block th:text="#{field.quantity}"></th:block>:
+              </label>
+              <div class="flex items-center rounded" style="border: 1px solid rgba(184, 134, 11, 0.3);">
+                <button class="px-3 py-2 transition" style="color: #b8a88a;" onclick="updateQuantity('decrease')">
+                  <i class="fas fa-minus text-xs"></i>
+                </button>
+                <div class="w-12 text-center py-2 font-medium" id="quantity" style="color: #daa520; border-left: 1px solid rgba(184, 134, 11, 0.3); border-right: 1px solid rgba(184, 134, 11, 0.3);">1</div>
+                <button class="px-3 py-2 transition" style="color: #b8a88a;" onclick="updateQuantity('increase')">
+                  <i class="fas fa-plus text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <form th:action="@{/cart}" method="POST">
+              <input type="hidden" name="productId" th:value="${item.id}" />
+              <input type="hidden" name="quantity" id="quantityInput" value="1" />
+              <button
+                id="add-to-cart"
+                class="w-full text-white py-3.5 rounded-lg transition duration-300 flex items-center justify-center gap-2 btn-imperial warp-glow"
+              >
+                <i class="fas fa-plus text-sm"></i>
+                <span th:text="#{button.addtocart}">Requisition Item</span>
+              </button>
+            </form>
+          </div>
+
+          <script>
+            function updateQuantity(action) {
+              const qEl = document.getElementById("quantity");
+              const qInput = document.getElementById("quantityInput");
+              let qty = parseInt(qEl.textContent);
+              if (action === "increase" && qty < 10) qty++;
+              else if (action === "decrease" && qty > 1) qty--;
+              qEl.textContent = qty;
+              qInput.value = qty;
+            }
+          </script>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

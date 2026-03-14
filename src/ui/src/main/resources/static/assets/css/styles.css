@@ -1,0 +1,399 @@
+/*
+ * WARHAMMER AWS 40K — Imperial Armoury
+ * Full Gothic Visual Overhaul
+ */
+
+/* ===== BASE ===== */
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'IM Fell English', serif;
+  background-color: #0a0a12;
+  color: #d4c5a0;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(184, 134, 11, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(139, 0, 0, 0.03) 0%, transparent 50%);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+}
+
+/* ===== AQUILA SVG (inline reusable) ===== */
+.aquila-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  opacity: 0.4;
+}
+
+.aquila-divider::before,
+.aquila-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #b8860b, transparent);
+}
+
+/* ===== GOTHIC BORDER FRAME ===== */
+.gothic-frame {
+  position: relative;
+  border: 2px solid #b8860b;
+  background: #12121e;
+}
+
+.gothic-frame::before,
+.gothic-frame::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #daa520;
+}
+
+.gothic-frame::before {
+  top: -3px;
+  left: -3px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.gothic-frame::after {
+  bottom: -3px;
+  right: -3px;
+  border-left: none;
+  border-top: none;
+}
+
+/* ===== DARK GOTHIC OVERRIDES ===== */
+.bg-white { background-color: #12121e !important; }
+.bg-gray-100 { background-color: #0a0a12 !important; }
+.bg-gray-200 { background-color: #1a1a2e !important; }
+.text-gray-800 { color: #e8d9b0 !important; }
+.text-gray-700 { color: #d4c5a0 !important; }
+.text-gray-600 { color: #b8a88a !important; }
+.text-gray-500 { color: #9a8a6a !important; }
+.text-gray-400 { color: #7a6a4a !important; }
+.text-black { color: #e8d9b0 !important; }
+.border-gray-200 { border-color: #2a2a3e !important; }
+.border-gray-300 { border-color: #3a3a4e !important; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes beam {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(50%); }
+}
+.animate-beam { animation: beam 5s infinite; }
+
+@keyframes warpGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(184, 134, 11, 0.3), 0 0 15px rgba(184, 134, 11, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(184, 134, 11, 0.5), 0 0 30px rgba(184, 134, 11, 0.2);
+  }
+}
+.warp-glow { animation: warpGlow 3s ease-in-out infinite; }
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+.flicker { animation: flicker 4s ease-in-out infinite; }
+
+@keyframes pulseGold {
+  0%, 100% { text-shadow: 0 0 5px rgba(218, 165, 32, 0.3); }
+  50% { text-shadow: 0 0 20px rgba(218, 165, 32, 0.6), 0 0 40px rgba(218, 165, 32, 0.2); }
+}
+.pulse-gold { animation: pulseGold 3s ease-in-out infinite; }
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* ===== NAVIGATION ===== */
+nav {
+  border-bottom: 2px solid rgba(184, 134, 11, 0.4) !important;
+  background: linear-gradient(180deg, #12121e 0%, #0e0e1a 100%) !important;
+}
+
+nav a {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.7rem !important;
+}
+
+/* ===== PRODUCT CARDS ===== */
+.product-card {
+  border: 1px solid rgba(184, 134, 11, 0.25);
+  border-top: 3px solid #b8860b;
+  padding: 1rem;
+  background: linear-gradient(180deg, #16162a 0%, #0e0e1a 100%);
+  position: relative;
+}
+
+.product-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.4), transparent);
+}
+
+/* ===== BUTTONS ===== */
+button, .btn {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+}
+
+.btn-imperial {
+  background: linear-gradient(180deg, #b8860b 0%, #8a6508 100%);
+  border: 1px solid #daa520;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  transition: all 0.3s;
+}
+
+.btn-imperial:hover {
+  background: linear-gradient(180deg, #daa520 0%, #b8860b 100%);
+  box-shadow: 0 0 15px rgba(184, 134, 11, 0.4);
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0a0a12; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #b8860b, #8a6508);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: #daa520; }
+
+/* ===== FOOTER ===== */
+footer {
+  background: linear-gradient(180deg, #0e0e1a 0%, #060610 100%) !important;
+  border-top: 2px solid rgba(184, 134, 11, 0.4);
+}
+
+/* ===== PAGINATION ===== */
+.pagination {
+  background: #12121e !important;
+  border: 1px solid rgba(184, 134, 11, 0.3) !important;
+}
+
+.pagination button {
+  border-color: rgba(184, 134, 11, 0.2) !important;
+  color: #b8a88a;
+}
+
+.pagination button:hover {
+  background: rgba(184, 134, 11, 0.1) !important;
+}
+
+/* ===== CATEGORY MENU ===== */
+.category-menu a {
+  color: #b8a88a !important;
+  transition: all 0.2s;
+  padding-left: 0.5rem;
+  border-left: 2px solid transparent;
+}
+
+.category-menu a:hover {
+  color: #daa520 !important;
+  border-left-color: #daa520;
+}
+
+/* ===== CART STYLES ===== */
+.cart-item { border-color: rgba(184, 134, 11, 0.15) !important; }
+
+/* ===== FORM INPUTS ===== */
+input, select, textarea {
+  background-color: #0e0e1a !important;
+  border: 1px solid rgba(184, 134, 11, 0.25) !important;
+  color: #d4c5a0 !important;
+  font-family: 'IM Fell English', serif;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #5a4a2a !important;
+  font-style: italic;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #b8860b !important;
+  box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.15), 0 0 15px rgba(184, 134, 11, 0.1) !important;
+  outline: none;
+}
+
+/* ===== WARNING BANNERS ===== */
+.bg-yellow-100 {
+  background-color: rgba(139, 0, 0, 0.1) !important;
+  border-color: #8b0000 !important;
+}
+
+.text-yellow-700 { color: #cc4444 !important; }
+.border-yellow-500 { border-color: #8b0000 !important; }
+
+/* ===== IMPERIAL EDICT BANNER ===== */
+.imperial-edict {
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.15) 0%, rgba(184, 134, 11, 0.1) 100%);
+  border: 1px solid rgba(184, 134, 11, 0.3);
+  border-left: 4px solid #8b0000;
+}
+
+/* ===== HERO OVERLAY PATTERN ===== */
+.hero-pattern {
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(184, 134, 11, 0.08) 39px, rgba(184, 134, 11, 0.08) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(184, 134, 11, 0.08) 39px, rgba(184, 134, 11, 0.08) 40px);
+}
+
+/* ===== SECTION BACKGROUNDS ===== */
+.section-dark {
+  background: linear-gradient(180deg, #0a0a12 0%, #0e0e1a 50%, #0a0a12 100%);
+}
+
+.section-panel {
+  background: linear-gradient(180deg, #0e0e1a 0%, #12121e 50%, #0e0e1a 100%);
+}
+
+/* ===== FEATURE CARDS ===== */
+.feature-card {
+  background: linear-gradient(180deg, #16162a 0%, #12121e 100%);
+  border: 1px solid rgba(184, 134, 11, 0.2);
+  border-top: 2px solid rgba(184, 134, 11, 0.5);
+  position: relative;
+  transition: all 0.3s;
+}
+
+.feature-card:hover {
+  border-color: rgba(184, 134, 11, 0.4);
+  box-shadow: 0 0 20px rgba(184, 134, 11, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ===== CHAT MODAL ===== */
+#chat-modal .bg-white { background-color: #12121e !important; }
+
+/* ===== MARKDOWN TEXT ===== */
+.message-text { line-height: 1.6; }
+.message-text p { margin-bottom: 1rem; }
+
+.message-text pre {
+  background-color: #0a0a12;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  border: 1px solid rgba(184, 134, 11, 0.2);
+}
+
+.message-text code {
+  background-color: #0a0a12;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875em;
+  color: #daa520;
+}
+
+.message-text ul, .message-text ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+.message-text ul { list-style-type: disc; }
+.message-text ol { list-style-type: decimal; }
+
+.message-text a { color: #daa520; text-decoration: underline; }
+.message-text a:hover { text-decoration: none; }
+
+.message-text blockquote {
+  border-left: 4px solid #b8860b;
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: #9a8a6a;
+}
+
+.message-text table { border-collapse: collapse; margin: 0.5rem 0; width: 100%; }
+.message-text th, .message-text td { border: 1px solid rgba(184, 134, 11, 0.2); padding: 0.5rem; text-align: left; }
+.message-text th { background-color: #0e0e1a; }
+
+.message-text h1 { font-size: 1.5em; font-weight: bold; margin: 0.5rem 0; }
+.message-text h2 { font-size: 1.25em; font-weight: bold; margin: 0.5rem 0; }
+.message-text h3 { font-size: 1.125em; font-weight: bold; margin: 0.5rem 0; }
+
+.message-text hr { border: 0; border-top: 1px solid rgba(184, 134, 11, 0.2); margin: 1rem 0; }
+
+/* ===== SELECTION ===== */
+::selection { background: rgba(184, 134, 11, 0.3); color: #fff; }
+
+/* ===== GLOBAL OVERRIDES ===== */
+.flex-grow { background-color: #0a0a12; }
+.min-h-screen { background-color: #0a0a12; }
+
+/* ===== PRODUCT DETAIL ===== */
+.product-detail {
+  border: 1px solid rgba(184, 134, 11, 0.2);
+  padding: 1.5rem;
+  background: linear-gradient(180deg, #16162a 0%, #0e0e1a 100%);
+}
+
+/* ===== BRAND LOGO TEXT ===== */
+.brand-text {
+  font-family: 'Cinzel Decorative', serif;
+  letter-spacing: 0.15em;
+  background: linear-gradient(180deg, #f0d060 0%, #b8860b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(184, 134, 11, 0.3));
+}
+
+/* ===== CORNER ORNAMENTS ===== */
+.corner-ornament {
+  position: relative;
+}
+
+.corner-ornament::before {
+  content: '\2726';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  color: #b8860b;
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
+.corner-ornament::after {
+  content: '\2726';
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  color: #b8860b;
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
+/* ===== SCANLINE OVERLAY ===== */
+.scanline-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}

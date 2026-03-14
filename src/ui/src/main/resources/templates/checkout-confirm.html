@@ -1,0 +1,43 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/checkout :: checkout (~{::body}, 4)}"
+>
+  <body>
+    <div class="row">
+      <div class="col-md-6 order-item" th:each="item : ${checkout.items}">
+        <div class="couplet mb-4">
+          <div class="picture">
+            <img
+              th:src="${item.imageUrl}"
+              style="height: 60px; border: 1px solid rgba(184, 134, 11, 0.2);"
+              src="bootstrap5-ecommerce/images/items/14.webp"
+              class="border img-sm rounded"
+            />
+          </div>
+          <div class="description">
+            <p th:text="${item.name}" style="color: #e8d9b0; font-family: 'Cinzel', serif;">Item Name</p>
+            <span style="color: #7a6a4a;"
+              ><th:block th:text="${item.quantity}">1</th:block> x $<th:block
+                th:text="${item.unitCost}"
+                >123</th:block
+              >
+            </span>
+            <br />
+            <strong style="color: #daa520;"> $400.90 </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    <form method="POST" id="checkoutForm" th:action="@{/checkout/confirm}">
+      <div class="box-footer d-flex justify-content-between">
+        <a th:href="@{/cart}" class="btn btn-outline-secondary" style="color: #b8a88a;"
+          ><i class="fa fa-chevron-left"></i> Back to Manifest</a
+        >
+        <button type="submit" class="btn btn-primary" style="background-color: #b8860b; color: white; border: 1px solid rgba(184, 134, 11, 0.5); padding: 0.5rem 1rem; border-radius: 0.375rem;">
+          Authorize Requisition <i class="fa fa-chevron-right"></i>
+        </button>
+      </div>
+    </form>
+  </body>
+</html>

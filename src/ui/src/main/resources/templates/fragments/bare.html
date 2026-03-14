@@ -1,0 +1,104 @@
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  th:fragment="bare (bareContent)"
+  th:replace="~{fragments/root :: root (~{::body})}"
+>
+  <body class="flex flex-col min-h-screen" style="background-color: #0a0a12;">
+    <th:block th:insert="${bareContent}" />
+
+    <!-- Footer -->
+    <footer class="mt-auto text-sm" style="background: linear-gradient(180deg, #0e0e1a 0%, #060610 100%); border-top: 2px solid rgba(184, 134, 11, 0.4);">
+      <div class="max-w-6xl mx-auto px-4 py-10">
+        <!-- Footer Aquila -->
+        <div class="text-center mb-6">
+          <svg width="60" height="30" viewBox="0 0 200 100" style="margin: 0 auto; display: block; opacity: 0.2;">
+            <path d="M100 10 L70 35 L10 25 L40 50 L10 75 L70 65 L100 90 L130 65 L190 75 L160 50 L190 25 L130 35 Z" fill="#b8860b"/>
+          </svg>
+        </div>
+
+        <div class="grid grid-cols-3 gap-8 py-6 max-w-2xl text-center m-auto">
+          <div>
+            <h3 class="font-semibold mb-4 uppercase text-xs" style="color: #daa520; letter-spacing: 0.2em;">
+              Quick Links
+            </h3>
+            <ul class="space-y-2">
+              <li><a th:href="@{/catalog}" class="hover:text-primary-500 transition" style="color: #5a4a2a;" th:text="#{nav.catalog}">Armoury</a></li>
+              <li><a href="#" class="hover:text-primary-500 transition" style="color: #5a4a2a;" th:text="#{nav.about}">Codex</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-4 uppercase text-xs" style="color: #daa520; letter-spacing: 0.2em;">
+              Cogitator
+            </h3>
+            <ul class="space-y-2">
+              <li><a th:href="@{/info}" class="hover:text-primary-500 transition" style="color: #5a4a2a;" th:text="#{nav.information}">Cogitator Data</a></li>
+              <li><a th:href="@{/topology}" class="hover:text-primary-500 transition" style="color: #5a4a2a;" th:text="#{nav.topology}">Astropathic Network</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-4 uppercase text-xs" style="color: #daa520; letter-spacing: 0.2em;">
+              Vox Channel
+            </h3>
+            <ul class="space-y-2">
+              <li style="color: #5a4a2a;">
+                <i class="fas fa-satellite-dish mr-2" style="color: #b8860b; opacity: 0.5;"></i>
+                <th:block th:text="#{footer.email}">Astropathic Choir</th:block>
+              </li>
+              <li style="color: #5a4a2a;">
+                <i class="fas fa-tower-broadcast mr-2" style="color: #b8860b; opacity: 0.5;"></i>
+                <th:block th:text="#{footer.phone}">Vox Channel</th:block>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Thought for the day -->
+        <div class="text-center mt-6 pt-6" style="border-top: 1px solid rgba(184, 134, 11, 0.15);">
+          <p style="color: #3a2a1a; font-style: italic; font-size: 0.75rem;" th:if="${!disableDemoWarnings}">
+            ++ This site is for demonstration purposes only ++ Thought for the day: An open mind is like a fortress with its gates unbarred and unguarded ++
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Chat trigger -->
+    <div id="chat-trigger-container" class="fixed bottom-4 right-4 hidden">
+      <button id="chat-trigger" class="px-6 py-3 text-white rounded-full shadow-lg btn-imperial focus:outline-none focus:ring-2 focus:ring-primary-500">
+        <i class="fas fa-satellite-dish"></i> Vox
+      </button>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-20">
+      <div class="rounded-lg shadow-xl p-4 max-w-4xl w-full mx-4 relative gothic-frame" style="background: #12121e;">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <div class="relative">
+              <img th:src="@{/assets/img/chat-avatar-mini.jpg}" alt="SERVITOR" class="w-14 h-14 rounded-full object-cover" style="border: 2px solid #b8860b;" />
+              <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 rounded-full" style="border-color: #12121e;"></div>
+            </div>
+            <div class="flex flex-col">
+              <h1 class="text-base font-semibold" style="color: #daa520; font-family: 'Cinzel', serif; letter-spacing: 0.1em;">SERVITOR</h1>
+              <p class="text-xs" style="color: #5a4a2a;">Sanctioned Armoury Cogitator Unit</p>
+            </div>
+          </div>
+          <button id="close-chat" style="color: #5a4a2a;" class="hover:text-primary-500">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div id="chat-messages" class="space-y-4 mb-4 h-96 overflow-y-auto p-4 rounded text-sm" style="background: #0a0a12; border: 1px solid rgba(184, 134, 11, 0.15);"></div>
+        <div class="flex gap-2 text-sm">
+          <input type="text" id="user-input" class="flex-1 px-4 py-2 rounded-lg focus:outline-none" placeholder="Transmit your query to the Machine Spirit..." />
+          <button id="send-button" class="px-6 py-2 text-white rounded-lg btn-imperial focus:outline-none">
+            <i class="fas fa-paper-plane"></i> Send
+          </button>
+          <button id="clear-button" class="px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none" style="border: 1px solid rgba(139, 0, 0, 0.5); color: #8b0000;">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

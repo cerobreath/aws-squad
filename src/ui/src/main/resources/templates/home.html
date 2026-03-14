@@ -1,0 +1,281 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/bare :: bare (~{::body})}"
+>
+  <body>
+    <nav
+      class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+      id="navbar"
+    >
+      <div class="menu-marker bg-transparent">
+        <div class="max-w-5xl mx-auto px-4">
+          <div class="flex justify-between items-center h-16">
+            <a th:href="@{/}">
+              <div class="flex items-center gap-3">
+                <!-- Aquila Icon SVG -->
+                <svg width="28" height="28" viewBox="0 0 100 100" class="switch" style="fill: white;">
+                  <path d="M50 15 L30 35 L5 30 L20 50 L5 70 L30 65 L50 85 L70 65 L95 70 L80 50 L95 30 L70 35 Z" opacity="0.9"/>
+                  <circle cx="50" cy="50" r="8"/>
+                </svg>
+                <span class="brand-text text-lg switch" style="font-size: 0.85rem;">WARHAMMER AWS 40K</span>
+              </div>
+            </a>
+            <div class="flex items-center space-x-10">
+              <a
+                id="menu-home"
+                th:href="@{/}"
+                class="text-white/90 hover:text-white transition duration-300 text-sm switch"
+                th:text="#{nav.home}"
+                >Sanctum</a
+              >
+              <a
+                id="menu-catalog"
+                th:href="@{/catalog}"
+                class="text-white/90 hover:text-white transition duration-300 text-sm switch"
+                th:text="#{nav.catalog}"
+                >Armoury</a
+              >
+            </div>
+            <div class="flex items-center">
+              <a th:href="@{/cart}" id="go-cart">
+                <button class="flex items-center gap-2 p-2 text-white hover:text-white/80">
+                  <i class="fas fa-scroll text-lg switch"></i>
+                  <span
+                    class="text-xs rounded-full h-5 min-w-[1.25rem] flex items-center justify-center switch-other"
+                    style="background: #b8860b; color: #fff;"
+                    th:text="${cart.numItems}"
+                  >3</span>
+                </button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        const navbar = document.getElementById("navbar");
+        window.addEventListener("scroll", () => {
+          const marker = navbar.querySelector("div.menu-marker");
+          if (window.scrollY > 50) {
+            marker.classList.remove("bg-transparent");
+            marker.style.backgroundColor = "rgba(10, 10, 18, 0.95)";
+            marker.style.borderBottom = "1px solid rgba(184, 134, 11, 0.4)";
+            marker.style.backdropFilter = "blur(12px)";
+            navbar.querySelectorAll("a.switch, span.switch, i.switch").forEach(el => {
+              el.classList.remove("text-white", "text-white/90");
+            });
+            navbar.querySelectorAll("svg.switch").forEach(el => {
+              el.style.fill = "#daa520";
+            });
+            navbar.querySelectorAll("span.switch-other").forEach(el => {
+              el.style.background = "#b8860b";
+            });
+          } else {
+            marker.classList.add("bg-transparent");
+            marker.style.backgroundColor = "";
+            marker.style.borderBottom = "";
+            marker.style.backdropFilter = "";
+            navbar.querySelectorAll("a.switch, span.switch, i.switch").forEach(el => {
+              el.classList.add("text-white");
+            });
+            navbar.querySelectorAll("svg.switch").forEach(el => {
+              el.style.fill = "white";
+            });
+            navbar.querySelectorAll("span.switch-other").forEach(el => {
+              el.style.background = "#b8860b";
+            });
+          }
+        });
+      </script>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="relative flex items-center justify-center overflow-hidden" style="height: 600px;">
+      <div class="absolute inset-0">
+        <img th:src="@{/assets/img/hero.jpg}" alt="Hero" class="w-full h-full object-cover" />
+        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(10,10,18,0.85) 0%, rgba(10,10,18,0.7) 50%, rgba(10,10,18,0.95) 100%);"></div>
+        <!-- Grid pattern -->
+        <div class="absolute inset-0 hero-pattern"></div>
+        <!-- Red glow from bottom -->
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 100%, rgba(139, 0, 0, 0.15) 0%, transparent 60%);"></div>
+        <!-- Gold glow from top -->
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 0%, rgba(184, 134, 11, 0.1) 0%, transparent 50%);"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-48" style="background: linear-gradient(to top, #0a0a12, transparent);"></div>
+      </div>
+
+      <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+        <!-- Aquila SVG -->
+        <div class="mb-6 flicker">
+          <svg width="120" height="60" viewBox="0 0 200 100" style="margin: 0 auto; display: block;">
+            <defs>
+              <linearGradient id="aquilaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#f0d060;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#8a6508;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <path d="M100 10 L70 35 L10 25 L40 50 L10 75 L70 65 L100 90 L130 65 L190 75 L160 50 L190 25 L130 35 Z" fill="url(#aquilaGrad)" opacity="0.8"/>
+            <circle cx="100" cy="50" r="10" fill="#daa520"/>
+            <circle cx="100" cy="50" r="5" fill="#0a0a12"/>
+          </svg>
+        </div>
+
+        <!-- Brand name -->
+        <h1 class="font-bold text-white mb-2 pulse-gold" style="font-family: 'Cinzel Decorative', serif; font-size: 3rem; letter-spacing: 0.15em; text-shadow: 0 0 40px rgba(184, 134, 11, 0.4);">
+          WARHAMMER <span style="color: #daa520;">AWS</span> 40K
+        </h1>
+
+        <!-- Ornamental line -->
+        <div class="flex items-center justify-center gap-4 mb-4" style="max-width: 400px; margin: 0 auto;">
+          <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #b8860b);"></div>
+          <span style="color: #b8860b; font-size: 0.8rem;">&#10022;</span>
+          <span style="color: #b8860b; font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase;">Imperial Armoury</span>
+          <span style="color: #b8860b; font-size: 0.8rem;">&#10022;</span>
+          <div style="flex: 1; height: 1px; background: linear-gradient(90deg, #b8860b, transparent);"></div>
+        </div>
+
+        <p class="text-xl mb-8 max-w-2xl mx-auto" style="font-family: 'IM Fell English', serif; color: #9a8a6a; font-style: italic;">
+          "In the grim darkness of the far future, there is only war... and well-equipped soldiers."
+        </p>
+
+        <div class="flex gap-4 justify-center">
+          <a
+            id="shop-now"
+            th:href="@{/catalog}"
+            class="relative inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold text-white rounded btn-imperial overflow-hidden"
+          >
+            <span class="relative z-10" th:text="#{hero.shopnow}">Enter the Armoury</span>
+            <i class="fas fa-arrow-right relative z-10"></i>
+            <div class="absolute inset-0 h-full w-[200%] animate-beam bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+          </a>
+        </div>
+
+        <!-- Bottom skulls -->
+        <div class="mt-8 flex items-center justify-center gap-6" style="opacity: 0.25;">
+          <span style="color: #b8860b;">&#9760;</span>
+          <span style="color: #b8860b;">&#9760;</span>
+          <span style="color: #b8860b;">&#9760;</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow" style="background-color: #0a0a12;">
+
+      <!-- Popular products -->
+      <section class="max-w-5xl mx-auto px-4 py-12">
+        <!-- Section header with ornaments -->
+        <div class="text-center mb-10">
+          <div class="aquila-divider">
+            <span style="color: #daa520; font-size: 1.2rem;">&#9760;</span>
+          </div>
+          <h2 class="text-2xl font-bold mb-2" th:text="#{home.popularitems}" style="color: #daa520; letter-spacing: 0.1em;">
+            Requisitions of the Hour
+          </h2>
+          <a
+            th:href="@{/catalog}"
+            class="inline-flex items-center text-xs font-medium transition duration-150"
+            style="color: #8a6508; letter-spacing: 0.1em; font-family: 'Cinzel', serif; text-transform: uppercase;"
+          >
+            <th:block th:text="#{home.viewfullcatalog}">Browse Full Armoury</th:block>
+            <i class="fas fa-arrow-right ml-2"></i>
+          </a>
+        </div>
+
+        <div
+          class="text-center mb-6 text-xs"
+          style="color: #5a4a2a; font-style: italic;"
+          th:if="${!disableDemoWarnings}"
+        >
+          ++ By order of the Inquisition: These items are for demonstration purposes only ++
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div th:each="item : ${catalog.products}">
+            <div th:replace="~{fragments/product_card :: card(${item}) }"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DIVIDER -->
+      <div class="aquila-divider max-w-3xl mx-auto">
+        <svg width="40" height="20" viewBox="0 0 200 100" style="display: block;">
+          <path d="M100 10 L70 35 L10 25 L40 50 L10 75 L70 65 L100 90 L130 65 L190 75 L160 50 L190 25 L130 35 Z" fill="#b8860b" opacity="0.3"/>
+        </svg>
+      </div>
+
+      <!-- WHY SERVE section -->
+      <section class="py-16 section-panel">
+        <div class="max-w-5xl mx-auto px-4">
+          <div class="text-center mb-10">
+            <h2 class="text-2xl font-bold mb-1" style="color: #daa520; letter-spacing: 0.1em;">
+              Why Serve the Imperium
+            </h2>
+            <p class="text-xs" style="color: #5a4a2a; font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 0.2em;">
+              The Emperor Protects
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1 -->
+            <div class="feature-card rounded-lg p-8 text-center">
+              <div class="mb-4" style="color: #daa520;">
+                <svg width="48" height="48" viewBox="0 0 100 100" style="margin: 0 auto;">
+                  <path d="M50 10 L35 30 L10 25 L25 50 L10 75 L35 70 L50 90 L65 70 L90 75 L75 50 L90 25 L65 30 Z" fill="currentColor" opacity="0.7"/>
+                  <circle cx="50" cy="50" r="8" fill="currentColor"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold mb-3" style="color: #e8d9b0; letter-spacing: 0.05em;">
+                Warp-Sealed Shipping
+              </h3>
+              <p class="text-sm" style="color: #8a7a5a;">
+                Every package is blessed by the Ecclesiarchy and sealed with Hexagrammic Wards against daemonic tampering during Warp transit.
+              </p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="feature-card rounded-lg p-8 text-center">
+              <div class="mb-4" style="color: #daa520;">
+                <i class="fas fa-skull-crossbones text-4xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-3" style="color: #e8d9b0; letter-spacing: 0.05em;">
+                Emperor's Guarantee
+              </h3>
+              <p class="text-sm" style="color: #8a7a5a;">
+                Equipment failure? Report to the nearest Forge World for replacement. All claims processed by the Adeptus Mechanicus. Heresy claims voided.
+              </p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="feature-card rounded-lg p-8 text-center">
+              <div class="mb-4" style="color: #daa520;">
+                <i class="fas fa-satellite-dish text-4xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-3" style="color: #e8d9b0; letter-spacing: 0.05em;">
+                Astropathic Support
+              </h3>
+              <p class="text-sm" style="color: #8a7a5a;">
+                Psychic communication from our sanctioned Astropaths, available across all five Segmentae of the Imperium. Response time: 1-999 Terran years.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- THOUGHT FOR THE DAY -->
+      <section class="py-10 text-center" style="background: #0a0a12;">
+        <div class="max-w-2xl mx-auto px-4">
+          <div class="aquila-divider">
+            <span style="color: #b8860b; font-size: 0.8rem;">&#10022;</span>
+          </div>
+          <p style="color: #5a4a2a; font-style: italic; font-size: 0.9rem;">
+            "Thought for the day: A small mind is easily filled with faith."
+          </p>
+          <div class="aquila-divider">
+            <span style="color: #b8860b; font-size: 0.8rem;">&#10022;</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

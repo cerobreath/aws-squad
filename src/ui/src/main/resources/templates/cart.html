@@ -1,0 +1,78 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (~{::body},'cart')}"
+>
+  <body>
+    <section class="max-w-3xl mx-auto py-10">
+      <div class="container mx-auto px-4 py-8">
+        <!-- Header with ornament -->
+        <div class="flex items-center gap-4 mb-8">
+          <div style="width: 40px; height: 2px; background: linear-gradient(90deg, #b8860b, transparent);"></div>
+          <h1 class="text-2xl font-semibold" th:text="#{shoppingcart.title}" style="color: #daa520; font-family: 'Cinzel', serif; letter-spacing: 0.1em;">
+            Requisition Manifest
+          </h1>
+        </div>
+
+        <div class="w-full" id="basket">
+          <div th:if="${fullCart.items.size() == 0}" style="color: #5a4a2a; font-style: italic; text-align: center; padding: 3rem 0;">
+            <i class="fas fa-scroll" style="font-size: 2rem; color: #2a2a3e; display: block; margin-bottom: 1rem;"></i>
+            Your requisition manifest is empty, soldier. The Emperor expects better.
+          </div>
+          <div th:if="${fullCart.items.size() > 0}">
+            <div
+              class="flex py-5 space-x-4"
+              style="border-bottom: 1px solid rgba(184, 134, 11, 0.15);"
+              th:each="item : ${fullCart.items}"
+            >
+              <img
+                src="https://via.placeholder.com/100"
+                alt="Product"
+                class="w-[90px] h-[90px] rounded object-cover"
+                th:src="@{/assets/img/products/{itemId}.jpg(itemId=${item.id})}"
+                style="border: 1px solid rgba(184, 134, 11, 0.2);"
+              />
+              <div class="flex-1">
+                <h2 th:text="${item.name}" class="item-name text-sm" style="color: #e8d9b0; font-family: 'Cinzel', serif;">Product</h2>
+                <p class="text-xs mt-1" style="color: #5a4a2a;">
+                  <th:block th:text="#{field.quantity}"></th:block>:
+                  <th:block th:text="${item.quantity}" class="item-quantity">1</th:block>
+                </p>
+              </div>
+              <div class="text-right">
+                <p style="color: #daa520; font-family: 'Cinzel', serif;">$<th:block th:text="${item.totalPrice}">299</th:block></p>
+                <p class="text-xs" style="color: #5a4a2a;">$<th:block class="item-price" th:text="${item.price}">299</th:block> each</p>
+                <form th:action="@{/cart/remove}" method="POST">
+                  <input type="hidden" name="productId" th:value="${item.id}" />
+                  <button type="submit" class="mt-2 remove-item transition" style="color: #8b0000;" aria-label="Remove">
+                    <i class="fas fa-trash-alt text-sm"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="mt-8 pt-6" style="border-top: 2px solid rgba(184, 134, 11, 0.2);">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-lg" style="color: #e8d9b0; font-family: 'Cinzel', serif;">Subtotal Tithe</p>
+                  <p class="text-xs mt-1" style="color: #5a4a2a;">Warp transit fees and Imperial tithes calculated at processing</p>
+                </div>
+                <p class="text-xl cart-subtotal" style="color: #daa520; font-family: 'Cinzel', serif;">
+                  $<th:block th:text="${fullCart.subtotal}">446</th:block>
+                </p>
+              </div>
+
+              <a th:href="@{/checkout}">
+                <button id="checkout" class="w-full text-white rounded-lg py-3.5 mt-6 btn-imperial warp-glow">
+                  <i class="fa fa-scroll mr-2"></i>
+                  <span th:text="#{shoppingcart.checkout}">Submit Requisition</span>
+                </button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

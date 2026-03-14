@@ -227,7 +227,7 @@ resource "aws_eks_node_group" "main" {
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_container_registry,
-    aws_eks_pod_identity_association.vpc_cni,
+    aws_eks_addon.vpc_cni,
   ]
 
   tags = {
@@ -245,7 +245,14 @@ resource "aws_eks_addon" "vpc_cni" {
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "PRESERVE"
 
-  depends_on = [aws_eks_node_group.main]
+  configuration_values = jsonencode({
+    env = {
+      ENABLE_PREFIX_DELEGATION = "true"
+      WARM_PREFIX_TARGET       = "1"
+    }
+  })
+
+  depends_on = [aws_eks_pod_identity_association.vpc_cni]
 }
 
 resource "aws_eks_addon" "coredns" {

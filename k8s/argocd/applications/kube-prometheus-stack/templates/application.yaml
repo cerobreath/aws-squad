@@ -65,10 +65,10 @@ spec:
               service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .Values.grafana.acmCertificateArn }}
               service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
               service.beta.kubernetes.io/aws-load-balancer-listen-ports: '[{"HTTPS":443}]'
-              external-dns.alpha.kubernetes.io/hostname: grafana.shop.whiteforge.ai
+              external-dns.alpha.kubernetes.io/hostname: {{ .Values.grafana.hostname }}
           grafana.ini:
             server:
-              root_url: https://grafana.shop.whiteforge.ai
+              root_url: https://{{ .Values.grafana.hostname }}
           resources:
             requests:
               cpu: 50m

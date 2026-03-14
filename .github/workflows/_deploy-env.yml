@@ -42,6 +42,12 @@ on:
       velero_role_arn:
         required: true
         type: string
+      argocd_hostname:
+        required: true
+        type: string
+      grafana_hostname:
+        required: true
+        type: string
     secrets:
       AWS_ROLE_ARN:
         required: true
@@ -90,6 +96,7 @@ jobs:
             --set "configs.secret.argocdServerAdminPassword=${BCRYPT_HASH}" \
             --set "server.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert=${{ inputs.argocd_acm_certificate_arn }}" \
             --set "server.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-ports=443" \
+            --set "server.service.annotations.external-dns\.alpha\.kubernetes\.io/hostname=${{ inputs.argocd_hostname }}" \
             --timeout 5m
 
       - name: Wait for ArgoCD to be ready
@@ -154,6 +161,7 @@ jobs:
             --namespace argocd \
             --set grafana.acmCertificateArn=${{ inputs.grafana_acm_certificate_arn }} \
             --set grafana.adminPassword=${{ secrets.GRAFANA_ADMIN_PASSWORD }} \
+            --set grafana.hostname=${{ inputs.grafana_hostname }} \
             | kubectl apply -f -
 
           helm template retail-store-app \
@@ -217,7 +225,7 @@ jobs:
           for i in $(seq 1 30); do
             ARGOCD_LB=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
             if [ -n "$ARGOCD_LB" ]; then
-              echo "::notice::ArgoCD UI: https://argocd.shop.whiteforge.ai"
+              echo "::notice::ArgoCD UI: https://${{ inputs.argocd_hostname }}"
               break
             fi
             sleep 10

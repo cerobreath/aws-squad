@@ -104,6 +104,16 @@ output "grafana_acm_certificate_arn" {
   value       = aws_acm_certificate_validation.grafana.certificate_arn
 }
 
+output "argocd_hostname" {
+  description = "ArgoCD hostname for this environment"
+  value       = local.argocd_domain
+}
+
+output "grafana_hostname" {
+  description = "Grafana hostname for this environment"
+  value       = local.grafana_domain
+}
+
 output "velero_bucket_name" {
   description = "S3 bucket name for Velero backups"
   value       = aws_s3_bucket.velero.id

@@ -69,6 +69,8 @@ jobs:
       ui_tag: ${{ needs.build-ui-staging.outputs.image_tag }}
       velero_bucket_name: ${{ needs.terraform-staging.outputs.velero_bucket_name }}
       velero_role_arn: ${{ needs.terraform-staging.outputs.velero_role_arn }}
+      argocd_hostname: ${{ needs.terraform-staging.outputs.argocd_hostname }}
+      grafana_hostname: ${{ needs.terraform-staging.outputs.grafana_hostname }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -120,6 +122,8 @@ jobs:
       ui_tag: ${{ needs.build-ui-production.outputs.image_tag }}
       velero_bucket_name: ${{ needs.terraform-production.outputs.velero_bucket_name }}
       velero_role_arn: ${{ needs.terraform-production.outputs.velero_role_arn }}
+      argocd_hostname: ${{ needs.terraform-production.outputs.argocd_hostname }}
+      grafana_hostname: ${{ needs.terraform-production.outputs.grafana_hostname }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -43,6 +43,10 @@ on:
         value: ${{ jobs.terraform.outputs.velero_bucket_name }}
       velero_role_arn:
         value: ${{ jobs.terraform.outputs.velero_role_arn }}
+      argocd_hostname:
+        value: ${{ jobs.terraform.outputs.argocd_hostname }}
+      grafana_hostname:
+        value: ${{ jobs.terraform.outputs.grafana_hostname }}
 
 jobs:
   terraform:
@@ -60,6 +64,8 @@ jobs:
       ecr_frontend_url: ${{ steps.tf.outputs.ecr_frontend_url }}
       velero_bucket_name: ${{ steps.tf.outputs.velero_bucket_name }}
       velero_role_arn: ${{ steps.tf.outputs.velero_role_arn }}
+      argocd_hostname: ${{ steps.tf.outputs.argocd_hostname }}
+      grafana_hostname: ${{ steps.tf.outputs.grafana_hostname }}
     steps:
       - uses: actions/checkout@v4
 
@@ -96,3 +102,5 @@ jobs:
           echo "ecr_frontend_url=$(terraform output -raw ecr_frontend_url)" >> "$GITHUB_OUTPUT"
           echo "velero_bucket_name=$(terraform output -raw velero_bucket_name)" >> "$GITHUB_OUTPUT"
           echo "velero_role_arn=$(terraform output -raw velero_role_arn)" >> "$GITHUB_OUTPUT"
+          echo "argocd_hostname=$(terraform output -raw argocd_hostname)" >> "$GITHUB_OUTPUT"
+          echo "grafana_hostname=$(terraform output -raw grafana_hostname)" >> "$GITHUB_OUTPUT"

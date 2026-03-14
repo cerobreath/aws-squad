@@ -184,6 +184,24 @@ resource "aws_launch_template" "eks_nodes" {
     http_put_response_hop_limit = 2
   }
 
+  user_data = base64encode(<<-USERDATA
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+--BOUNDARY
+Content-Type: application/node.eks.aws
+
+---
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  kubelet:
+    config:
+      maxPods: 110
+--BOUNDARY--
+USERDATA
+  )
+
   tag_specifications {
     resource_type = "instance"
     tags = {

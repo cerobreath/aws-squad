@@ -1,0 +1,16 @@
+/**
+ * Warhammer 40K — Dark Angels / Salamanders Theme (Green)
+ */
+
+:root {
+  --primary-color-50: 236, 253, 245;
+  --primary-color-100: 209, 250, 229;
+  --primary-color-200: 167, 243, 208;
+  --primary-color-300: 110, 231, 183;
+  --primary-color-400: 52, 211, 153;
+  --primary-color-500: 16, 185, 129;
+  --primary-color-600: 5, 150, 105;
+  --primary-color-700: 4, 120, 87;
+  --primary-color-800: 6, 95, 70;
+  --primary-color-900: 6, 78, 59;
+}

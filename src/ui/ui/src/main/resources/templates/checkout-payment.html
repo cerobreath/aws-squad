@@ -1,0 +1,165 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/checkout :: checkout (~{::body}, 3)}"
+>
+  <body>
+    <form
+      method="POST"
+      id="checkoutForm"
+      th:action="@{/checkout/payment}"
+      th:object="${paymentDetailsRequest}"
+    >
+      <h2 class="text-2xl font-bold mb-6" th:text="#{checkout.payment}" style="color: #daa520; font-family: 'Cinzel', serif;">
+        Tithe Payment
+      </h2>
+
+      <div class="space-y-6">
+        <!-- Card Holder Name -->
+        <div>
+          <label
+            for="cardHolder"
+            class="block text-sm font-medium mb-1"
+            style="color: #b8a88a;"
+          >
+            Name of Tithe-Payer
+          </label>
+          <input
+            type="text"
+            id="cardHolder"
+            name="cardHolder"
+            th:value="*{cardHolder}"
+            required
+            autocomplete="cc-name"
+            class="w-full px-3 py-2 rounded-md focus:outline-none"
+            placeholder="Name inscribed on Throne Gelt card"
+            th:classappend="${#fields.hasErrors('cardHolder')} ? border-red-500 : ''"
+          />
+          <div
+            class="text-sm" style="color: #8b0000;"
+            th:if="${#fields.hasErrors('cardHolder')}"
+            th:errors="*{cardHolder}"
+          >
+            Validation.
+          </div>
+        </div>
+
+        <!-- Card Number -->
+        <div>
+          <label
+            for="cardNumber"
+            class="block text-sm font-medium mb-1"
+            style="color: #b8a88a;"
+          >
+            Throne Gelt Card Number
+          </label>
+          <div class="relative">
+            <input
+              type="text"
+              id="cardNumber"
+              name="cardNumber"
+              th:value="*{cardNumber}"
+              required
+              autocomplete="cc-number"
+              class="w-full px-3 py-2 rounded-md focus:outline-none pl-10"
+              placeholder="1234 5678 9012 3456"
+              th:classappend="${#fields.hasErrors('cardNumber')} ? border-red-500 : ''"
+            />
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i class="fas fa-coins" style="color: #7a6a4a;"></i>
+            </div>
+          </div>
+          <div
+            class="text-sm" style="color: #8b0000;"
+            th:if="${#fields.hasErrors('cardNumber')}"
+            th:errors="*{cardNumber}"
+          >
+            Validation.
+          </div>
+        </div>
+
+        <!-- Expiry Date and CVC -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label
+              for="expiryDate"
+              class="block text-sm font-medium mb-1"
+              style="color: #b8a88a;"
+            >
+              Expiry Date
+            </label>
+            <input
+              type="text"
+              id="expiryDate"
+              name="expiryDate"
+              th:value="*{expiryDate}"
+              required
+              autocomplete="cc-exp"
+              class="w-full px-3 py-2 rounded-md focus:outline-none"
+              placeholder="MM/YY"
+              th:classappend="${#fields.hasErrors('expiryDate')} ? border-red-500 : ''"
+            />
+            <div
+              class="text-sm" style="color: #8b0000;"
+              th:if="${#fields.hasErrors('expiryDate')}"
+              th:errors="*{expiryDate}"
+            >
+              Validation.
+            </div>
+          </div>
+          <div>
+            <label
+              for="cvc"
+              class="block text-sm font-medium mb-1"
+              style="color: #b8a88a;"
+            >
+              Sanctification Code
+            </label>
+            <input
+              type="text"
+              id="cvc"
+              name="cvc"
+              th:value="*{cvc}"
+              required
+              autocomplete="cc-csc"
+              class="w-full px-3 py-2 rounded-md focus:outline-none"
+              placeholder="123"
+              maxlength="4"
+              th:classappend="${#fields.hasErrors('cvc')} ? border-red-500 : ''"
+            />
+            <div
+              class="text-sm" style="color: #8b0000;"
+              th:if="${#fields.hasErrors('cvc')}"
+              th:errors="*{cvc}"
+            >
+              Validation.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8 flex justify-between items-center">
+        <a th:href="@{/cart}">
+          <button
+            type="button"
+            class="px-6 py-2 rounded-md focus:outline-none"
+            style="border: 1px solid rgba(184, 134, 11, 0.3); color: #b8a88a;"
+          >
+            Back to Manifest
+          </button>
+        </a>
+
+        <button
+          id="checkout-submit"
+          type="submit"
+          class="px-6 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          style="border: 1px solid rgba(184, 134, 11, 0.3);"
+        >
+          Submit Tithe
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </form>
+  </body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/checkout :: checkout (~{::body}, 2)}"
+>
+  <body>
+    <form
+      th:object="${checkoutDeliveryMethodRequest}"
+      method="POST"
+      id="checkoutForm"
+      th:action="@{/checkout/delivery}"
+    >
+      <h2 class="text-2xl font-bold mb-6" th:text="#{checkout.delivery}" style="color: #daa520; font-family: 'Cinzel', serif;">
+        Warp Transit Method
+      </h2>
+      <fieldset class="mt-6">
+        <div class="space-y-4">
+          <label
+            class="relative flex cursor-pointer rounded-lg p-4 shadow-sm focus:outline-none"
+            style="background-color: #16213e; border: 1px solid rgba(184, 134, 11, 0.2);"
+            th:each="option : ${checkout.shippingOptions}"
+          >
+            <input
+              type="radio"
+              th:field="*{token}"
+              name="delivery"
+              th:name="'delivery-'+${option.token}"
+              th:value="${option.token}"
+              class="peer sr-only"
+            />
+            <div class="flex flex-1">
+              <div class="flex flex-col">
+                <span
+                  class="block text-sm font-medium"
+                  style="color: #e8d9b0;"
+                  th:text="${option.name}"
+                  >Standard Warp Transit</span
+                >
+                <span class="mt-1 flex items-center text-sm" style="color: #7a6a4a;"
+                  ><th:block th:text="${option.estimatedDays}">7</th:block>
+                  Terran standard days</span
+                >
+              </div>
+              <span class="ml-auto text-sm font-medium" style="color: #daa520;"
+                >$<th:block th:text="${option.amount}">7</th:block></span
+              >
+            </div>
+            <div
+              class="absolute -inset-px rounded-lg border-2 pointer-events-none peer-checked:border-primary-500"
+              style="border-color: transparent;"
+            ></div>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="mt-8 flex justify-between items-center">
+        <a th:href="@{/cart}">
+          <button
+            type="button"
+            class="px-6 py-2 rounded-md focus:outline-none"
+            style="border: 1px solid rgba(184, 134, 11, 0.3); color: #b8a88a;"
+          >
+            Back to Manifest
+          </button>
+        </a>
+
+        <button
+          id="checkout-submit"
+          type="submit"
+          class="px-6 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          style="border: 1px solid rgba(184, 134, 11, 0.3);"
+        >
+          Advance
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </form>
+  </body>
+</html>

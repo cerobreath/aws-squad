@@ -52,6 +52,7 @@ jobs:
       vpc_id: ${{ needs.terraform-staging.outputs.vpc_id }}
       lb_controller_role_arn: ${{ needs.terraform-staging.outputs.lb_controller_role_arn }}
       origin_acm_certificate_arn: ${{ needs.terraform-staging.outputs.origin_acm_certificate_arn }}
+      argocd_acm_certificate_arn: ${{ needs.terraform-staging.outputs.argocd_acm_certificate_arn }}
       hostname: origin-staging.shop.whiteforge.ai
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
@@ -96,6 +97,7 @@ jobs:
       vpc_id: ${{ needs.terraform-production.outputs.vpc_id }}
       lb_controller_role_arn: ${{ needs.terraform-production.outputs.lb_controller_role_arn }}
       origin_acm_certificate_arn: ${{ needs.terraform-production.outputs.origin_acm_certificate_arn }}
+      argocd_acm_certificate_arn: ${{ needs.terraform-production.outputs.argocd_acm_certificate_arn }}
       hostname: origin.shop.whiteforge.ai
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}

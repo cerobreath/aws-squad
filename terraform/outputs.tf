@@ -94,3 +94,8 @@ output "origin_acm_certificate_arn" {
   value       = aws_acm_certificate_validation.origin.certificate_arn
 }
 
+output "argocd_acm_certificate_arn" {
+  description = "ACM certificate ARN for ArgoCD (TLS on NLB)"
+  value       = aws_acm_certificate_validation.argocd.certificate_arn
+}
+

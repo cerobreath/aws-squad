@@ -129,7 +129,8 @@ class Config:
     @staticmethod
     def setup_for_development() -> None:
         """Setup configuration for local development."""
-        Config.setup_logging(log_level="INFO", include_console=True)
+        log_level = os.getenv("LOG_LEVEL", "INFO")
+        Config.setup_logging(log_level=log_level, include_console=True)
 
         enable_langfuse = bool(
             os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY")

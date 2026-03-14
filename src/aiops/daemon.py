@@ -89,13 +89,14 @@ class HealthDaemon:
         now = datetime.now(timezone.utc).isoformat()
         self.state.last_check = now
         self.state.checks_total += 1
-        logger.info(f"[daemon] Health check #{self.state.checks_total} starting")
+        logger.info(f"[daemon] Health check #{self.state.checks_total} starting at {now}")
 
         try:
             result = asyncio.run(self._assess_health())
+            logger.info(f"[daemon] Raw assessment result: {json.dumps(result, default=str)[:500]}")
             self._process_result(result, now)
         except Exception as e:
-            logger.error(f"[daemon] Health check failed: {e}")
+            logger.error(f"[daemon] Health check failed: {e}", exc_info=True)
             self.state.last_status = "error"
             self.state.last_summary = str(e)
             self._append_history(now, "error", str(e), [])

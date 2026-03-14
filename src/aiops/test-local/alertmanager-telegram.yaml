@@ -1,0 +1,64 @@
+# Alertmanager config with Telegram for local testing.
+# Usage:
+#   1. Fill in bot_token and chat_id below
+#   2. Run: kubectl -n monitoring create secret generic alertmanager-kube-prom-kube-prometheus-alertmanager \
+#             --from-file=alertmanager.yaml=alertmanager-telegram.yaml --dry-run=client -o yaml | kubectl apply -f -
+#   3. Alertmanager auto-reloads within ~30s
+#
+# To get bot_token: talk to @BotFather on Telegram, /newbot
+# To get chat_id:   add bot to group, send msg, call:
+#   curl https://api.telegram.org/bot<TOKEN>/getUpdates | jq '.result[0].message.chat.id'
+
+global:
+  resolve_timeout: 5m
+  telegram_api_url: "https://api.telegram.org"
+
+route:
+  receiver: "null"
+  group_by: ["namespace", "alertname"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    # AIOps alerts → Telegram
+    - receiver: telegram-aiops
+      matchers:
+        - source="aiops-daemon"
+      group_by: ["namespace", "resource"]
+      group_wait: 30s
+      group_interval: 2m
+      repeat_interval: 1h
+      continue: false
+    # Silence Watchdog
+    - receiver: "null"
+      matchers:
+        - alertname="Watchdog"
+      continue: false
+
+receivers:
+  - name: "null"
+  - name: telegram-aiops
+    telegram_configs:
+      - bot_token: "REPLACE_ME"    # e.g. "123456789:AAF..."
+        chat_id: -1                 # e.g. -1001234567890
+        parse_mode: HTML
+        message: |-
+          {{ range .Alerts }}
+          <b>{{ .Labels.severity | toUpper }}: {{ .Labels.alertname }}</b>
+          <b>Resource:</b> {{ .Labels.resource }} ({{ .Labels.namespace }})
+          <b>Summary:</b> {{ .Annotations.summary }}
+          {{ if .Annotations.description }}<b>Details:</b>
+          {{ .Annotations.description }}{{ end }}
+          {{ end }}
+
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity=~"warning|info"
+    equal: ["namespace", "alertname"]
+  - source_matchers:
+      - severity="warning"
+    target_matchers:
+      - severity="info"
+    equal: ["namespace", "alertname"]

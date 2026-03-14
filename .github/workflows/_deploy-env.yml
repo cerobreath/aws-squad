@@ -68,7 +68,15 @@ jobs:
             --create-namespace \
             --values k8s/argocd/values.yaml \
             --set "configs.secret.argocdServerAdminPassword=${BCRYPT_HASH}" \
-            --wait --timeout 5m
+            --timeout 5m
+
+      - name: Wait for ArgoCD to be ready
+        run: |
+          echo "Waiting for ArgoCD components..."
+          kubectl rollout status statefulset/argocd-application-controller -n argocd --timeout=3m
+          kubectl rollout status deployment/argocd-server -n argocd --timeout=3m
+          kubectl rollout status deployment/argocd-repo-server -n argocd --timeout=3m
+          echo "ArgoCD is ready"
 
       - name: Apply Sealed Secrets Application
         run: |

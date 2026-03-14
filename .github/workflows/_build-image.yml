@@ -1,0 +1,61 @@
+name: Build & Push Image
+
+on:
+  workflow_call:
+    inputs:
+      context:
+        required: true
+        type: string
+      ecr_url:
+        required: true
+        type: string
+      cache_scope:
+        required: false
+        type: string
+        default: ""
+      aws_region:
+        required: true
+        type: string
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+    outputs:
+      image_tag:
+        value: ${{ jobs.build.outputs.image_tag }}
+
+jobs:
+  build:
+    name: "Build & Push"
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Image metadata
+        id: meta
+        run: |
+          echo "image_tag=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.context }}/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ inputs.ecr_url }}:${{ steps.meta.outputs.image_tag }}
+            ${{ inputs.ecr_url }}:latest
+          cache-from: type=gha${{ inputs.cache_scope != '' && format(',scope={0}', inputs.cache_scope) || '' }}
+          cache-to: type=gha,mode=max${{ inputs.cache_scope != '' && format(',scope={0}', inputs.cache_scope) || '' }}

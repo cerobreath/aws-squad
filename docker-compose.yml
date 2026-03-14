@@ -1,0 +1,228 @@
+
+services:
+  # ==================== Application ====================
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    platform: linux/amd64
+    environment:
+      PORT: "8080"
+      PRODUCT_CATALOG_SERVICE_ADDR: "productcatalogservice:3550"
+      CURRENCY_SERVICE_ADDR: "currencyservice:7000"
+      CART_SERVICE_ADDR: "cartservice:7070"
+      RECOMMENDATION_SERVICE_ADDR: "recommendationservice:8080"
+      SHIPPING_SERVICE_ADDR: "shippingservice:50051"
+      CHECKOUT_SERVICE_ADDR: "checkoutservice:5050"
+      AD_SERVICE_ADDR: "adservice:9555"
+      SHOPPING_ASSISTANT_SERVICE_ADDR: "shoppingassistantservice:80"
+      ENV_PLATFORM: "aws"
+      ENABLE_ASSISTANT: "false"
+      #APP_ENV: "staging"
+      APP_ENV: "production"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "frontend"
+    depends_on:
+      - productcatalogservice
+      - currencyservice
+      - cartservice
+      - recommendationservice
+      - shippingservice
+      - checkoutservice
+      - adservice
+      - otel-collector
+    restart: unless-stopped
+
+  productcatalogservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/productcatalogservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      PORT: "3550"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "productcatalogservice"
+    volumes:
+      - ./k8s/test-app/product_data/products.json:/src/products.json
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  currencyservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/currencyservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      PORT: "7000"
+      DISABLE_PROFILER: "1"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "currencyservice"
+    volumes:
+      - ./k8s/test-app/currency_data/currency_conversion.json:/usr/src/app/data/currency_conversion.json
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  cartservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/cartservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      REDIS_ADDR: "redis-cart:6379"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "cartservice"
+    depends_on:
+      - redis-cart
+      - otel-collector
+    restart: unless-stopped
+
+  redis-cart:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  recommendationservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/recommendationservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      PORT: "8080"
+      PRODUCT_CATALOG_SERVICE_ADDR: "productcatalogservice:3550"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "recommendationservice"
+    depends_on:
+      - productcatalogservice
+      - otel-collector
+    restart: unless-stopped
+
+  shippingservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/shippingservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      PORT: "50051"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "shippingservice"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  checkoutservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/checkoutservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      PORT: "5050"
+      PRODUCT_CATALOG_SERVICE_ADDR: "productcatalogservice:3550"
+      SHIPPING_SERVICE_ADDR: "shippingservice:50051"
+      PAYMENT_SERVICE_ADDR: "paymentservice:50051"
+      EMAIL_SERVICE_ADDR: "emailservice:8080"
+      CURRENCY_SERVICE_ADDR: "currencyservice:7000"
+      CART_SERVICE_ADDR: "cartservice:7070"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "checkoutservice"
+    depends_on:
+      - productcatalogservice
+      - shippingservice
+      - paymentservice
+      - emailservice
+      - currencyservice
+      - cartservice
+      - otel-collector
+    restart: unless-stopped
+
+  paymentservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/paymentservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      PORT: "50051"
+      DISABLE_PROFILER: "1"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "paymentservice"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  emailservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/emailservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      PORT: "8080"
+      DISABLE_PROFILER: "1"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "emailservice"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  adservice:
+    image: us-central1-docker.pkg.dev/google-samples/microservices-demo/adservice:v0.10.4
+    platform: linux/amd64
+    environment:
+      PORT: "9555"
+      COLLECTOR_SERVICE_ADDR: "otel-collector:4317"
+      ENABLE_TRACING: "1"
+      OTEL_SERVICE_NAME: "adservice"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  # ==================== Observability ====================
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.144.0
+    platform: linux/amd64
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./k8s/observability/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus metrics export
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/jaeger:2.4.0
+    platform: linux/amd64
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317"         # OTLP gRPC (internal)
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    platform: linux/amd64
+    volumes:
+      - ./k8s/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    platform: linux/amd64
+    volumes:
+      - ./k8s/observability/grafana/provisioning:/etc/grafana/provisioning
+      - ./k8s/observability/grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: warhammer40k
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    depends_on:
+      - prometheus
+      - jaeger
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:

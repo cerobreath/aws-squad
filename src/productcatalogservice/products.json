@@ -1,0 +1,112 @@
+{
+    "products": [
+        {
+            "id": "OLJCESPC7Z",
+            "name": "Space Marine Intercessors",
+            "description": "A squad of 10 Primaris Space Marine Intercessors. The backbone of any Adeptus Astartes army.",
+            "picture": "/static/img/products/space_marine.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 60,
+                "nanos": 0
+            },
+            "categories": ["warhammer40k", "space-marines"]
+        },
+        {
+            "id": "66VCHSJNUP",
+            "name": "Ork Boyz",
+            "description": "A mob of 20 Ork Boyz ready for a proper WAAAGH! Green iz best!",
+            "picture": "/static/img/products/ork.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 50,
+                "nanos": 0
+            },
+            "categories": ["warhammer40k", "orks"]
+        },
+        {
+            "id": "1YMWWN1N4O",
+            "name": "Imperial Knight",
+            "description": "Towering war engine of the Imperium. Dominates the battlefield with devastating firepower.",
+            "picture": "/static/img/products/imperial_k.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 170,
+                "nanos": 0
+            },
+            "categories": ["warhammer40k", "imperial-knights"]
+        },
+        {
+            "id": "L9ECAV7KIM",
+            "name": "Necron Warriors",
+            "description": "20 ancient robotic warriors of the Necron dynasty, awakened from their millennia-long slumber.",
+            "picture": "/static/img/products/necron.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 55,
+                "nanos": 0
+            },
+            "categories": ["warhammer40k", "necrons"]
+        },
+        {
+            "id": "2ZYFJ3GM2N",
+            "name": "Citadel Paint Set",
+            "description": "Essential paint set with 12 colours for painting your Warhammer miniatures like a true artisan.",
+            "picture": "/static/img/products/citadel.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 35,
+                "nanos": 500000000
+            },
+            "categories": ["paints", "tools"]
+        },
+        {
+            "id": "0PUK6V6EV0",
+            "name": "Tyranid Hive Tyrant",
+            "description": "A monstrous synapse creature that commands the endless swarms of the Hive Mind.",
+            "picture": "/static/img/products/tyranid.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 55,
+                "nanos": 0
+            },
+            "categories": ["warhammer40k", "tyranids"]
+        },
+        {
+            "id": "LS4PSXUNUM",
+            "name": "Aeldari Wraithknight",
+            "description": "A towering Aeldari construct piloted by the souls of the dead. Grace and destruction combined.",
+            "picture": "/static/img/products/aldari.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 125,
+                "nanos": 0
+            },
+            "categories": ["warhammer40k", "aeldari"]
+        },
+        {
+            "id": "9SIQT8TOJO",
+            "name": "Warhammer 40k Core Rules",
+            "description": "The essential rulebook for Warhammer 40,000. In the grim darkness of the far future, there is only war.",
+            "picture": "/static/img/products/core.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 65,
+                "nanos": 0
+            },
+            "categories": ["books", "rules"]
+        },
+        {
+            "id": "6E92ZMYYFZ",
+            "name": "Chaos Space Marines",
+            "description": "10 Heretic Astartes who turned from the Emperor's light. Death to the False Emperor!",
+            "picture": "/static/img/products/chaos_sm.png",
+            "priceUsd": {
+                "currencyCode": "USD",
+                "units": 60,
+                "nanos": 0
+            },
+            "categories": ["warhammer40k", "chaos"]
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+clusterName: "" # set via --set clusterName=<name>
+region: ""      # set via --set region=<region>
+vpcId: ""       # set via --set vpcId=<id>
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    eks.amazonaws.com/role-arn: "" # set via --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=<arn>
+
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+enableServiceMutatorWebhook: false

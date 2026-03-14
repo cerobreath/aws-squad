@@ -79,27 +79,6 @@ output "ecr_currencyservice_url" {
   value       = local.ecr_urls["currencyservice"]
 }
 
-output "amp_workspace_endpoint" {
-  description = "Amazon Managed Prometheus remote write endpoint"
-  value       = aws_prometheus_workspace.main.prometheus_endpoint
-}
-
-output "grafana_workspace_endpoint" {
-  description = "AWS Managed Grafana workspace URL"
-  value       = aws_grafana_workspace.main.endpoint
-}
-
-output "otel_collector_role_arn" {
-  description = "IAM role ARN for OTEL Collector (IRSA)"
-  value       = aws_iam_role.otel_collector.arn
-}
-
-output "grafana_api_token" {
-  description = "Grafana service account API token for CI/CD automation"
-  value       = aws_grafana_workspace_service_account_token.ci_cd.key
-  sensitive   = true
-}
-
 output "cloudfront_distribution_id" {
   description = "CloudFront distribution ID"
   value       = aws_cloudfront_distribution.main.id
@@ -115,7 +94,3 @@ output "origin_acm_certificate_arn" {
   value       = aws_acm_certificate_validation.origin.certificate_arn
 }
 
-output "elasticache_endpoint" {
-  description = "ElastiCache Serverless endpoint for cart database"
-  value       = aws_elasticache_serverless_cache.main.endpoint[0].address
-}

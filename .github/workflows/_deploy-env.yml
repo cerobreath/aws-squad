@@ -24,43 +24,12 @@ on:
       hostname:
         required: true
         type: string
-      ecr_frontend_url:
-        required: true
-        type: string
-      frontend_image_tag:
-        required: true
-        type: string
-      ecr_productcatalogservice_url:
-        required: true
-        type: string
-      productcatalogservice_image_tag:
-        required: true
-        type: string
-      ecr_currencyservice_url:
-        required: true
-        type: string
-      currencyservice_image_tag:
-        required: true
-        type: string
-      amp_endpoint:
-        required: true
-        type: string
-      otel_collector_role_arn:
-        required: true
-        type: string
-      grafana_endpoint:
-        required: true
-        type: string
-      grafana_api_token:
-        required: true
-        type: string
-      elasticache_endpoint:
-        required: true
-        type: string
     secrets:
       AWS_ROLE_ARN:
         required: true
       CLOUDFLARE_API_TOKEN:
+        required: true
+      ARGOCD_ADMIN_PASSWORD:
         required: true
 
 jobs:
@@ -82,139 +51,95 @@ jobs:
             --region ${{ inputs.aws_region }} \
             --name ${{ inputs.cluster_name }}
 
-      - name: Install AWS Load Balancer Controller
+      - name: Install kubeseal
         run: |
-          helm repo add eks https://aws.github.io/eks-charts
-          helm repo update eks
-          helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
-            --namespace kube-system \
-            --values k8s/aws-load-balancer-controller/values.yaml \
-            --set clusterName=${{ inputs.cluster_name }} \
-            --set region=${{ inputs.aws_region }} \
-            --set vpcId=${{ inputs.vpc_id }} \
-            --set "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn=${{ inputs.lb_controller_role_arn }}" \
-            --wait
+          KUBESEAL_VERSION="0.28.0"
+          curl -fsSL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION}/kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz" \
+            | tar xz -C /usr/local/bin kubeseal
 
-      - name: Install ExternalDNS
+      - name: Install ArgoCD
+        run: |
+          sudo apt-get install -y apache2-utils > /dev/null 2>&1
+          BCRYPT_HASH=$(htpasswd -nbBC 10 "" '${{ secrets.ARGOCD_ADMIN_PASSWORD }}' | tr -d ':\n' | sed 's/$2y/$2a/')
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update argo
+          helm upgrade --install argocd argo/argo-cd \
+            --namespace argocd \
+            --create-namespace \
+            --values k8s/argocd/values.yaml \
+            --set "configs.secret.argocdServerAdminPassword=${BCRYPT_HASH}" \
+            --wait --timeout 5m
+
+      - name: Apply Sealed Secrets Application
+        run: |
+          kubectl apply -f k8s/argocd/applications/sealed-secrets.yaml
+
+      - name: Wait for Sealed Secrets controller
+        run: |
+          echo "Waiting for Sealed Secrets controller..."
+          for i in $(seq 1 90); do
+            READY=$(kubectl get deployment -n kube-system sealed-secrets -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
+            if [ "$READY" = "1" ]; then
+              echo "Sealed Secrets controller is ready"
+              exit 0
+            fi
+            echo "  attempt $i/90 — not ready yet"
+            sleep 5
+          done
+          echo "ERROR: Sealed Secrets controller did not become ready in time"
+          kubectl get pods -n kube-system -l app.kubernetes.io/name=sealed-secrets
+          exit 1
+
+      - name: Create Cloudflare SealedSecret
         run: |
           kubectl create secret generic cloudflare-api-token \
             --namespace kube-system \
             --from-literal=api-token=${{ secrets.CLOUDFLARE_API_TOKEN }} \
-            --dry-run=client -o yaml | kubectl apply -f -
-          helm repo add external-dns https://kubernetes-sigs.github.io/external-dns
-          helm repo update external-dns
-          helm upgrade --install external-dns external-dns/external-dns \
-            --namespace kube-system \
-            --values k8s/external-dns/values.yaml \
-            --wait
+            --dry-run=client -o yaml \
+          | kubeseal \
+              --controller-name=sealed-secrets \
+              --controller-namespace=kube-system \
+              --format yaml \
+          | kubectl apply -f -
 
-      - name: Deploy app
+      - name: Apply remaining ArgoCD Applications
         run: |
-          helm upgrade --install test-app ./k8s/test-app \
-            --namespace demo \
-            --create-namespace \
-            --values k8s/test-app/values.yaml \
-            --set "frontend.image.repository=${{ inputs.ecr_frontend_url }}" \
-            --set "frontend.image.tag=${{ inputs.frontend_image_tag }}" \
-            --set "frontend.appEnv=${{ inputs.environment }}" \
-            --set "productCatalogService.image.repository=${{ inputs.ecr_productcatalogservice_url }}" \
-            --set "productCatalogService.image.tag=${{ inputs.productcatalogservice_image_tag }}" \
-            --set "currencyService.image.repository=${{ inputs.ecr_currencyservice_url }}" \
-            --set "currencyService.image.tag=${{ inputs.currencyservice_image_tag }}" \
-            --set "ingress.annotations.alb\\.ingress\\.kubernetes\\.io/certificate-arn=${{ inputs.origin_acm_certificate_arn }}" \
-            --set "ingress.hosts[0].host=${{ inputs.hostname }}" \
-            --set "opentelemetryCollector.ampEndpoint=${{ inputs.amp_endpoint }}api/v1/remote_write" \
-            --set "opentelemetryCollector.awsRegion=${{ inputs.aws_region }}" \
-            --set "opentelemetryCollector.irsaRoleArn=${{ inputs.otel_collector_role_arn }}" \
-            --set "cartDatabase.connectionString=${{ inputs.elasticache_endpoint }}:6379\,ssl=true\,abortConnect=false" \
-            --wait --timeout 5m
+          # Template LB controller with Terraform values
+          sed \
+            -e 's|CLUSTER_NAME_PLACEHOLDER|${{ inputs.cluster_name }}|g' \
+            -e 's|REGION_PLACEHOLDER|${{ inputs.aws_region }}|g' \
+            -e 's|VPC_ID_PLACEHOLDER|${{ inputs.vpc_id }}|g' \
+            -e 's|LB_ROLE_ARN_PLACEHOLDER|${{ inputs.lb_controller_role_arn }}|g' \
+            k8s/argocd/applications/lb-controller.yaml | kubectl apply -f -
 
-      - name: Wait for ALB
+          kubectl apply -f k8s/argocd/applications/external-dns.yaml
+          kubectl apply -f k8s/argocd/applications/root.yaml
+
+      - name: Wait for all applications to sync
         run: |
-          for i in $(seq 1 30); do
-            ALB=$(kubectl get ingress frontend -n demo -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
-            if [ -n "$ALB" ]; then
-              echo "::notice::ALB endpoint (${{ inputs.environment }}): https://${ALB}"
-              echo "::notice::ExternalDNS will create CNAME: ${{ inputs.hostname }} -> ${ALB}"
+          echo "Waiting for ArgoCD applications to sync..."
+          for i in $(seq 1 60); do
+            SYNCED=$(kubectl get applications -n argocd -o jsonpath='{range .items[*]}{.status.sync.status}{"\n"}{end}' 2>/dev/null | grep -c "Synced" || echo "0")
+            TOTAL=$(kubectl get applications -n argocd --no-headers 2>/dev/null | wc -l | tr -d ' ')
+            echo "  attempt $i/60 — $SYNCED/$TOTAL synced"
+            if [ "$TOTAL" -gt 0 ] && [ "$SYNCED" = "$TOTAL" ]; then
+              echo "All applications synced"
               break
             fi
             sleep 10
           done
+          kubectl get applications -n argocd
 
-      - name: Configure Grafana
-        env:
-          GRAFANA_URL: https://${{ inputs.grafana_endpoint }}
-          GRAFANA_TOKEN: ${{ inputs.grafana_api_token }}
-          AMP_ENDPOINT: ${{ inputs.amp_endpoint }}
-          AWS_REGION_VAL: ${{ inputs.aws_region }}
+      - name: Print ArgoCD access info
         run: |
-          # Helper: create or update datasource by name
-          upsert_datasource() {
-            local payload="$1"
-            local ds_name
-            ds_name=$(echo "$payload" | jq -r '.name')
-            local encoded_name
-            encoded_name=$(printf '%s' "$ds_name" | jq -sRr @uri)
-
-            # Check if datasource already exists
-            local existing
-            existing=$(curl -sf "${GRAFANA_URL}/api/datasources/name/${encoded_name}" \
-              -H "Authorization: Bearer ${GRAFANA_TOKEN}" 2>/dev/null) || true
-
-            if echo "$existing" | jq -e '.id' >/dev/null 2>&1; then
-              local ds_id
-              ds_id=$(echo "$existing" | jq -r '.id')
-              echo "Updating datasource '${ds_name}' (id=${ds_id})"
-              curl -sf -X PUT "${GRAFANA_URL}/api/datasources/${ds_id}" \
-                -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
-                -H "Content-Type: application/json" \
-                -d "$payload"
-            else
-              echo "Creating datasource '${ds_name}'"
-              curl -sf -X POST "${GRAFANA_URL}/api/datasources" \
-                -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
-                -H "Content-Type: application/json" \
-                -d "$payload"
+          echo "::notice::ArgoCD user: admin"
+          echo "::notice::Password: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d"
+          ARGOCD_LB=""
+          for i in $(seq 1 30); do
+            ARGOCD_LB=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
+            if [ -n "$ARGOCD_LB" ]; then
+              echo "::notice::ArgoCD UI: http://${ARGOCD_LB}"
+              break
             fi
-          }
-
-          # AMP datasource
-          upsert_datasource '{
-            "name": "Amazon Managed Prometheus",
-            "type": "prometheus",
-            "url": "'"${AMP_ENDPOINT}"'",
-            "access": "proxy",
-            "isDefault": true,
-            "jsonData": {
-              "httpMethod": "POST",
-              "sigV4Auth": true,
-              "sigV4AuthType": "default",
-              "sigV4Region": "'"${AWS_REGION_VAL}"'"
-            }
-          }'
-
-          # X-Ray datasource
-          upsert_datasource '{
-            "name": "AWS X-Ray",
-            "type": "grafana-x-ray-datasource",
-            "access": "proxy",
-            "jsonData": {
-              "defaultRegion": "'"${AWS_REGION_VAL}"'"
-            }
-          }'
-
-          # Get Prometheus datasource UID for dashboard variable substitution
-          DS_UID=$(curl -sf "${GRAFANA_URL}/api/datasources/name/Amazon%20Managed%20Prometheus" \
-            -H "Authorization: Bearer ${GRAFANA_TOKEN}" | jq -r '.uid')
-
-          # Import dashboards with datasource UID replaced
-          for DASH_FILE in k8s/observability/grafana/dashboards/*.json; do
-            if [ -f "$DASH_FILE" ]; then
-              echo "Importing dashboard: $DASH_FILE"
-              DASHBOARD=$(sed "s/\${DS_PROMETHEUS}/${DS_UID}/g" "$DASH_FILE")
-              curl -sf -X POST "${GRAFANA_URL}/api/dashboards/db" \
-                -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
-                -H "Content-Type: application/json" \
-                -d "{\"dashboard\": ${DASHBOARD}, \"overwrite\": true}"
-            fi
+            sleep 10
           done

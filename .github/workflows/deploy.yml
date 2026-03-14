@@ -6,9 +6,6 @@ on:
     paths:
       - "k8s/**"
       - "terraform/**"
-      - "src/frontend/**"
-      - "src/productcatalogservice/**"
-      - "src/currencyservice/**"
       - ".github/workflows/**"
   workflow_dispatch:
     inputs:
@@ -27,7 +24,7 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # SHARED — terraform-staging + builds always run (provide ECR URLs & images)
+  # STAGING
   # ---------------------------------------------------------------------------
   terraform-staging:
     uses: ./.github/workflows/_terraform.yml
@@ -41,43 +38,8 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
 
-  build-frontend:
-    needs: terraform-staging
-    uses: ./.github/workflows/_build-image.yml
-    with:
-      context: ./src/frontend
-      ecr_url: ${{ needs.terraform-staging.outputs.ecr_frontend_url }}
-      aws_region: eu-central-1
-    secrets:
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-
-  build-productcatalogservice:
-    needs: terraform-staging
-    uses: ./.github/workflows/_build-image.yml
-    with:
-      context: ./src/productcatalogservice
-      ecr_url: ${{ needs.terraform-staging.outputs.ecr_productcatalogservice_url }}
-      cache_scope: productcatalogservice
-      aws_region: eu-central-1
-    secrets:
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-
-  build-currencyservice:
-    needs: terraform-staging
-    uses: ./.github/workflows/_build-image.yml
-    with:
-      context: ./src/currencyservice
-      ecr_url: ${{ needs.terraform-staging.outputs.ecr_currencyservice_url }}
-      cache_scope: currencyservice
-      aws_region: eu-central-1
-    secrets:
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-
-  # ---------------------------------------------------------------------------
-  # STAGING — deploy (skipped when manually selecting "production" only)
-  # ---------------------------------------------------------------------------
   deploy-staging:
-    needs: [terraform-staging, build-frontend, build-productcatalogservice, build-currencyservice]
+    needs: [terraform-staging]
     if: >-
       github.event_name == 'push' ||
       inputs.environment == 'staging' ||
@@ -91,27 +53,16 @@ jobs:
       lb_controller_role_arn: ${{ needs.terraform-staging.outputs.lb_controller_role_arn }}
       origin_acm_certificate_arn: ${{ needs.terraform-staging.outputs.origin_acm_certificate_arn }}
       hostname: origin-staging.shop.whiteforge.ai
-      ecr_frontend_url: ${{ needs.terraform-staging.outputs.ecr_frontend_url }}
-      frontend_image_tag: ${{ needs.build-frontend.outputs.image_tag }}
-      ecr_productcatalogservice_url: ${{ needs.terraform-staging.outputs.ecr_productcatalogservice_url }}
-      productcatalogservice_image_tag: ${{ needs.build-productcatalogservice.outputs.image_tag }}
-      ecr_currencyservice_url: ${{ needs.terraform-staging.outputs.ecr_currencyservice_url }}
-      currencyservice_image_tag: ${{ needs.build-currencyservice.outputs.image_tag }}
-      amp_endpoint: ${{ needs.terraform-staging.outputs.amp_endpoint }}
-      otel_collector_role_arn: ${{ needs.terraform-staging.outputs.otel_collector_role_arn }}
-      grafana_endpoint: ${{ needs.terraform-staging.outputs.grafana_endpoint }}
-      grafana_api_token: ${{ needs.terraform-staging.outputs.grafana_api_token }}
-      elasticache_endpoint: ${{ needs.terraform-staging.outputs.elasticache_endpoint }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ARGOCD_ADMIN_PASSWORD: ${{ secrets.ARGOCD_ADMIN_PASSWORD }}
 
   # ---------------------------------------------------------------------------
-  # PRODUCTION — requires manual approval in GitHub environment settings
-  # Uses always() so it runs even when deploy-staging is skipped (production-only)
+  # PRODUCTION
   # ---------------------------------------------------------------------------
   terraform-production:
-    needs: [deploy-staging, build-frontend, build-productcatalogservice, build-currencyservice]
+    needs: [deploy-staging]
     if: >-
       always() && !failure() && !cancelled() && (
         github.event_name == 'push' ||
@@ -130,7 +81,7 @@ jobs:
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
 
   deploy-production:
-    needs: [terraform-production, build-frontend, build-productcatalogservice, build-currencyservice]
+    needs: [terraform-production]
     if: >-
       always() && !failure() && !cancelled() && (
         github.event_name == 'push' ||
@@ -146,17 +97,7 @@ jobs:
       lb_controller_role_arn: ${{ needs.terraform-production.outputs.lb_controller_role_arn }}
       origin_acm_certificate_arn: ${{ needs.terraform-production.outputs.origin_acm_certificate_arn }}
       hostname: origin.shop.whiteforge.ai
-      ecr_frontend_url: ${{ needs.terraform-production.outputs.ecr_frontend_url }}
-      frontend_image_tag: ${{ needs.build-frontend.outputs.image_tag }}
-      ecr_productcatalogservice_url: ${{ needs.terraform-production.outputs.ecr_productcatalogservice_url }}
-      productcatalogservice_image_tag: ${{ needs.build-productcatalogservice.outputs.image_tag }}
-      ecr_currencyservice_url: ${{ needs.terraform-production.outputs.ecr_currencyservice_url }}
-      currencyservice_image_tag: ${{ needs.build-currencyservice.outputs.image_tag }}
-      amp_endpoint: ${{ needs.terraform-production.outputs.amp_endpoint }}
-      otel_collector_role_arn: ${{ needs.terraform-production.outputs.otel_collector_role_arn }}
-      grafana_endpoint: ${{ needs.terraform-production.outputs.grafana_endpoint }}
-      grafana_api_token: ${{ needs.terraform-production.outputs.grafana_api_token }}
-      elasticache_endpoint: ${{ needs.terraform-production.outputs.elasticache_endpoint }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ARGOCD_ADMIN_PASSWORD: ${{ secrets.ARGOCD_ADMIN_PASSWORD }}

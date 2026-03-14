@@ -1,0 +1,33 @@
+# ArgoCD Helm values — minimal for hackathon
+
+# Single replica, no HA
+controller:
+  replicas: 1
+
+server:
+  replicas: 1
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+      service.beta.kubernetes.io/aws-load-balancer-type: external
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+      external-dns.alpha.kubernetes.io/hostname: argocd.shop.whiteforge.ai
+
+repoServer:
+  replicas: 1
+
+applicationSet:
+  replicas: 1
+
+redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+configs:
+  params:
+    server.insecure: true  # TLS terminates on LB, not on ArgoCD
+  cm:
+    timeout.reconciliation: 30s  # faster sync for hackathon

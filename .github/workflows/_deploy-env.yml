@@ -177,10 +177,6 @@ jobs:
             k8s/argocd/applications/kyverno \
             --namespace argocd | kubectl apply -f -
 
-          helm template kyverno-policies-app \
-            k8s/argocd/applications/kyverno-policies \
-            --namespace argocd | kubectl apply -f -
-
           helm template root-app \
             k8s/argocd/applications/root \
             --namespace argocd | kubectl apply -f -
@@ -199,6 +195,19 @@ jobs:
             sleep 10
           done
           kubectl get applications -n argocd
+
+      - name: Apply Kyverno policies
+        run: |
+          echo "Waiting for Kyverno CRDs..."
+          for i in $(seq 1 60); do
+            if kubectl get crd clusterpolicies.kyverno.io > /dev/null 2>&1; then
+              echo "Kyverno CRDs are ready"
+              break
+            fi
+            echo "  attempt $i/60 — CRDs not ready yet"
+            sleep 10
+          done
+          kubectl apply -f k8s/policies/
 
       - name: Print ArgoCD access info
         run: |

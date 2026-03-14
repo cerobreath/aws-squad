@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/cerobreath/aws-squad.git
-    targetRevision: HEAD
+    targetRevision: staging
     path: k8s/policies
     directory:
       recurse: true

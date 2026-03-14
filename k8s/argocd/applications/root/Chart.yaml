@@ -1,0 +1,4 @@
+apiVersion: v2
+name: root-app
+description: ArgoCD root Application (app of apps from Git)
+version: 0.1.0

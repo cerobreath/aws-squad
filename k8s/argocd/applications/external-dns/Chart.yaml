@@ -1,0 +1,4 @@
+apiVersion: v2
+name: external-dns-app
+description: ArgoCD Application for ExternalDNS with Cloudflare
+version: 0.1.0

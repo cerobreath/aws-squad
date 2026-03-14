@@ -1,0 +1,4 @@
+apiVersion: v2
+name: kube-prometheus-stack-app
+description: ArgoCD Application for kube-prometheus-stack (Prometheus + Grafana + Alertmanager)
+version: 0.1.0

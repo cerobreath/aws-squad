@@ -14,14 +14,14 @@ spec:
     helm:
       releaseName: aws-load-balancer-controller
       valuesObject:
-        clusterName: CLUSTER_NAME_PLACEHOLDER
-        region: REGION_PLACEHOLDER
-        vpcId: VPC_ID_PLACEHOLDER
+        clusterName: {{ .Values.clusterName }}
+        region: {{ .Values.awsRegion }}
+        vpcId: {{ .Values.vpcId }}
         serviceAccount:
           create: true
           name: aws-load-balancer-controller
           annotations:
-            eks.amazonaws.com/role-arn: LB_ROLE_ARN_PLACEHOLDER
+            eks.amazonaws.com/role-arn: {{ .Values.lbControllerRoleArn }}
         replicaCount: 1
         resources:
           requests:

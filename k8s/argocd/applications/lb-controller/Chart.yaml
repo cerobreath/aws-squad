@@ -1,0 +1,4 @@
+apiVersion: v2
+name: lb-controller-app
+description: ArgoCD Application for AWS Load Balancer Controller
+version: 0.1.0

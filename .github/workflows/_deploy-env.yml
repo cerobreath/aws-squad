@@ -24,6 +24,9 @@ on:
       argocd_acm_certificate_arn:
         required: true
         type: string
+      grafana_acm_certificate_arn:
+        required: true
+        type: string
       hostname:
         required: true
         type: string
@@ -33,6 +36,8 @@ on:
       CLOUDFLARE_API_TOKEN:
         required: true
       ARGOCD_ADMIN_PASSWORD:
+        required: true
+      GRAFANA_ADMIN_PASSWORD:
         required: true
 
 jobs:
@@ -85,7 +90,9 @@ jobs:
 
       - name: Apply Sealed Secrets Application
         run: |
-          kubectl apply -f k8s/argocd/applications/sealed-secrets.yaml
+          helm upgrade --install sealed-secrets-app \
+            k8s/argocd/applications/sealed-secrets \
+            --namespace argocd
 
       - name: Wait for Sealed Secrets controller
         run: |
@@ -115,18 +122,29 @@ jobs:
               --format yaml \
           | kubectl apply -f -
 
-      - name: Apply remaining ArgoCD Applications
+      - name: Deploy ArgoCD Applications
         run: |
-          # Template LB controller with Terraform values
-          sed \
-            -e 's|CLUSTER_NAME_PLACEHOLDER|${{ inputs.cluster_name }}|g' \
-            -e 's|REGION_PLACEHOLDER|${{ inputs.aws_region }}|g' \
-            -e 's|VPC_ID_PLACEHOLDER|${{ inputs.vpc_id }}|g' \
-            -e 's|LB_ROLE_ARN_PLACEHOLDER|${{ inputs.lb_controller_role_arn }}|g' \
-            k8s/argocd/applications/lb-controller.yaml | kubectl apply -f -
+          helm upgrade --install lb-controller-app \
+            k8s/argocd/applications/lb-controller \
+            --namespace argocd \
+            --set clusterName=${{ inputs.cluster_name }} \
+            --set awsRegion=${{ inputs.aws_region }} \
+            --set vpcId=${{ inputs.vpc_id }} \
+            --set lbControllerRoleArn=${{ inputs.lb_controller_role_arn }}
 
-          kubectl apply -f k8s/argocd/applications/external-dns.yaml
-          kubectl apply -f k8s/argocd/applications/root.yaml
+          helm upgrade --install external-dns-app \
+            k8s/argocd/applications/external-dns \
+            --namespace argocd
+
+          helm upgrade --install kube-prometheus-stack-app \
+            k8s/argocd/applications/kube-prometheus-stack \
+            --namespace argocd \
+            --set grafana.acmCertificateArn=${{ inputs.grafana_acm_certificate_arn }} \
+            --set grafana.adminPassword=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+
+          helm upgrade --install root-app \
+            k8s/argocd/applications/root \
+            --namespace argocd
 
       - name: Wait for all applications to sync
         run: |

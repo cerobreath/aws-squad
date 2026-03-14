@@ -99,3 +99,8 @@ output "argocd_acm_certificate_arn" {
   value       = aws_acm_certificate_validation.argocd.certificate_arn
 }
 
+output "grafana_acm_certificate_arn" {
+  description = "ACM certificate ARN for Grafana (TLS on NLB)"
+  value       = aws_acm_certificate_validation.grafana.certificate_arn
+}
+

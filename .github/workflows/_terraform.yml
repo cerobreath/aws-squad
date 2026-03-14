@@ -35,6 +35,8 @@ on:
         value: ${{ jobs.terraform.outputs.origin_acm_certificate_arn }}
       argocd_acm_certificate_arn:
         value: ${{ jobs.terraform.outputs.argocd_acm_certificate_arn }}
+      grafana_acm_certificate_arn:
+        value: ${{ jobs.terraform.outputs.grafana_acm_certificate_arn }}
 
 jobs:
   terraform:
@@ -48,6 +50,7 @@ jobs:
       lb_controller_role_arn: ${{ steps.tf.outputs.lb_controller_role_arn }}
       origin_acm_certificate_arn: ${{ steps.tf.outputs.origin_acm_certificate_arn }}
       argocd_acm_certificate_arn: ${{ steps.tf.outputs.argocd_acm_certificate_arn }}
+      grafana_acm_certificate_arn: ${{ steps.tf.outputs.grafana_acm_certificate_arn }}
     steps:
       - uses: actions/checkout@v4
 
@@ -80,3 +83,4 @@ jobs:
           echo "lb_controller_role_arn=$(terraform output -raw aws_lb_controller_role_arn)" >> "$GITHUB_OUTPUT"
           echo "origin_acm_certificate_arn=$(terraform output -raw origin_acm_certificate_arn)" >> "$GITHUB_OUTPUT"
           echo "argocd_acm_certificate_arn=$(terraform output -raw argocd_acm_certificate_arn)" >> "$GITHUB_OUTPUT"
+          echo "grafana_acm_certificate_arn=$(terraform output -raw grafana_acm_certificate_arn)" >> "$GITHUB_OUTPUT"

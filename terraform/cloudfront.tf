@@ -5,6 +5,7 @@ locals {
   cloudfront_domain = local.is_production ? var.domain_name : "staging.${var.domain_name}"
   origin_domain     = local.is_production ? "origin.${var.domain_name}" : "origin-staging.${var.domain_name}"
   argocd_domain     = "argocd.${var.domain_name}"
+  grafana_domain    = "grafana.${var.domain_name}"
 }
 
 # ACM certificate in us-east-1 (required by CloudFront)

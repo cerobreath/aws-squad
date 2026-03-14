@@ -1,9 +1,10 @@
 [
   {
-    "id": "Intercessor_squad_space_marines_primaris_intercessors.jpg",
+    "id": "Intercessor_squad_space_marines_primaris_intercessors",
     "name": "Intercessor Squad",
     "description": "Box of 5 Primaris Intercessor miniatures. The backbone of any Space Marine army, armed with bolt rifles. Multipart plastic kit with multiple weapon and head options.",
     "price": 60,
+    "rating": 5,
     "tags": ["space-marines"]
   },
   {
@@ -11,6 +12,7 @@
     "name": "Terminator Squad",
     "description": "Box of 5 Terminator miniatures in Tactical Dreadnought Armour. Equipped with storm bolters and power fists. Includes assault cannon and heavy flamer options.",
     "price": 55,
+    "rating": 4,
     "tags": ["space-marines"]
   },
   {
@@ -18,6 +20,7 @@
     "name": "Redemptor Dreadnought",
     "description": "Massive Primaris Dreadnought armed with macro plasma incinerator or heavy onslaught gatling cannon. Highly detailed multipart plastic kit with multiple weapon configurations.",
     "price": 70,
+    "rating": 5,
     "tags": ["space-marines"]
   },
   {
@@ -25,6 +28,7 @@
     "name": "Captain in Gravis Armour",
     "description": "Space Marine Captain clad in heavy Gravis armour. Armed with master-crafted power sword and boltstorm gauntlet. An imposing HQ choice for your army.",
     "price": 38,
+    "rating": 3,
     "tags": ["space-marines"]
   },
   {
@@ -32,6 +36,7 @@
     "name": "Bladeguard Veterans",
     "description": "Box of 3 elite Bladeguard Veteran miniatures wielding master-crafted power swords and storm shields. Premium close combat unit for Space Marine armies.",
     "price": 50,
+    "rating": 4,
     "tags": ["space-marines"]
   },
   {
@@ -39,6 +44,7 @@
     "name": "Primaris Chaplain",
     "description": "Primaris Chaplain miniature armed with crozius arcanum and absolvor bolt pistol. Inspires nearby units and provides powerful aura abilities on the battlefield.",
     "price": 35,
+    "rating": 4,
     "tags": ["space-marines"]
   },
   {
@@ -46,6 +52,7 @@
     "name": "Chaos Space Marines",
     "description": "Box of 10 Chaos Space Marines. Multipart plastic kit with a huge variety of weapons, heads, and accessories. Ideal for building a Heretic Astartes force.",
     "price": 55,
+    "rating": 4,
     "tags": ["chaos"]
   },
   {
@@ -53,6 +60,7 @@
     "name": "Daemon Prince",
     "description": "Towering Daemon Prince miniature. A mighty warlord ascended to daemonhood. Large multipart plastic kit with weapon and wing options.",
     "price": 65,
+    "rating": 5,
     "tags": ["chaos"]
   },
   {
@@ -60,6 +68,7 @@
     "name": "Abaddon the Despoiler",
     "description": "The Warmaster of Chaos himself. Stunning centrepiece miniature armed with the daemon sword Drach'nyen and the Talon of Horus. Leader of the Black Legion.",
     "price": 60,
+    "rating": 5,
     "tags": ["chaos"]
   },
   {
@@ -67,6 +76,7 @@
     "name": "Possessed",
     "description": "Box of 5 Possessed Chaos Space Marines. Warriors fused with daemonic entities, mutated and deadly in close combat. Highly dynamic sculpts.",
     "price": 50,
+    "rating": 3,
     "tags": ["chaos"]
   },
   {
@@ -74,6 +84,7 @@
     "name": "Chaos Terminators",
     "description": "Box of 5 Chaos Terminators. Veterans of the Long War clad in corrupted Tactical Dreadnought Armour. Multiple weapon options including combi-weapons and power weapons.",
     "price": 60,
+    "rating": 4,
     "tags": ["chaos"]
   },
   {
@@ -81,6 +92,7 @@
     "name": "Ork Boyz",
     "description": "Box of 10 Ork Boyz. The rowdy core of any Ork Waaagh! Armed with sluggas, choppas, and shootas. Includes options for a Boss Nob with power klaw.",
     "price": 45,
+    "rating": 4,
     "tags": ["xenos"]
   },
   {
@@ -88,6 +100,7 @@
     "name": "Necron Warriors",
     "description": "Box of 10 Necron Warriors with Scarab Swarms. The implacable core of the Necron legions, armed with gauss flayers or gauss reapers. Includes 3 Scarab Swarm bases.",
     "price": 45,
+    "rating": 4,
     "tags": ["xenos"]
   },
   {
@@ -95,6 +108,7 @@
     "name": "Tyranid Termagants",
     "description": "Box of 10 Termagant miniatures. Swarming bioforms of the Tyranid Hive Fleets armed with devourers or fleshborers. Fast to build, perfect for horde armies.",
     "price": 38,
+    "rating": 3,
     "tags": ["xenos"]
   },
   {
@@ -102,6 +116,7 @@
     "name": "T'au Fire Warriors",
     "description": "Box of 10 T'au Fire Warriors. Elite infantry of the T'au Empire armed with pulse rifles or pulse carbines. Includes DS8 tactical support turret and drone options.",
     "price": 45,
+    "rating": 4,
     "tags": ["xenos"]
   },
   {
@@ -109,6 +124,7 @@
     "name": "Eldar Guardians",
     "description": "Box of 10 Guardian Defenders of the Aeldari Craftworlds. Citizen-soldiers armed with shuriken catapults. Includes heavy weapon platform with multiple weapon options.",
     "price": 50,
+    "rating": 3,
     "tags": ["xenos"]
   },
   {
@@ -116,6 +132,7 @@
     "name": "Citadel Base Paint Set",
     "description": "Set of 6 essential Citadel Base paints. High-pigment paints that provide a solid foundation colour in one coat. Includes popular colours for Space Marines and more.",
     "price": 28,
+    "rating": 5,
     "tags": ["paints"]
   },
   {
@@ -123,6 +140,7 @@
     "name": "Shade Paint Set",
     "description": "Set of 4 Citadel Shade paints. Specially formulated washes that flow into recesses to add depth and definition to your miniatures. Includes Nuln Oil and Agrax Earthshade.",
     "price": 25,
+    "rating": 5,
     "tags": ["paints"]
   },
   {
@@ -130,13 +148,143 @@
     "name": "Contrast Paint Set",
     "description": "Set of 6 Citadel Contrast paints. Revolutionary paints that provide base colour, shading, and highlight in a single application over a light undercoat. Speed painting made easy.",
     "price": 35,
+    "rating": 4,
     "tags": ["paints"]
+  },
+  {
+    "id": "Dry_paint_set",
+    "name": "Dry Paint Set",
+    "description": "Set of 4 Citadel Dry paints. Specially formulated thick paints designed for drybrushing to quickly add highlights and texture to your miniatures.",
+    "price": 20,
+    "rating": 3,
+    "tags": ["paints"]
+  },
+  {
+    "id": "Technical_paint_set",
+    "name": "Technical Paint Set",
+    "description": "Set of assorted Citadel Technical paints. Includes texture paints for basing, Blood for the Blood God for gore effects, and Nihilakh Oxide for verdigris effects.",
+    "price": 22,
+    "rating": 4,
+    "tags": ["paints"]
+  },
+  {
+    "id": "Citadel_mouldline_remover",
+    "name": "Citadel Mouldline Remover",
+    "description": "Precision tool designed to cleanly remove mouldlines from plastic and resin miniatures without damaging detail. Ergonomic handle for comfortable extended use.",
+    "price": 12,
+    "rating": 3,
+    "tags": ["tools"]
+  },
+  {
+    "id": "Citadel_plastic_glue",
+    "name": "Citadel Plastic Glue",
+    "description": "Precision plastic cement with ultra-fine applicator tip. Creates a strong molecular bond between plastic components. Essential for assembling multipart plastic kits.",
+    "price": 8,
+    "rating": 4,
+    "tags": ["tools"]
+  },
+  {
+    "id": "Citadel_fine_detail_cutters",
+    "name": "Citadel Fine Detail Cutters",
+    "description": "High-quality flush cutters for cleanly removing miniature components from sprues. Single-blade design ensures a flat cut close to the component. Spring-loaded handle.",
+    "price": 30,
+    "rating": 5,
+    "tags": ["tools"]
+  },
+  {
+    "id": "Starter_brush_set",
+    "name": "Starter Brush Set",
+    "description": "Set of 3 Citadel brushes — Small Base, Small Layer, and Shade brush. Synthetic bristles that maintain a fine point. Everything you need to start painting miniatures.",
+    "price": 18,
+    "rating": 4,
+    "tags": ["tools"]
+  },
+  {
+    "id": "Citadel_painting_handle",
+    "name": "Citadel Painting Handle",
+    "description": "Spring-loaded painting handle that securely grips miniature bases from 25mm to 50mm. Provides a comfortable grip and keeps your fingers off the miniature while painting.",
+    "price": 10,
+    "rating": 3,
+    "tags": ["tools"]
   },
   {
     "id": "Warhammer_40K_core_rules",
     "name": "Warhammer 40K Core Rules",
     "description": "The complete rules for playing Warhammer 40,000. Contains all core mechanics, mission types, terrain rules, and matched play guidelines. Full-colour hardback book.",
     "price": 65,
+    "rating": 5,
     "tags": ["books"]
+  },
+  {
+    "id": "Codex_space_marines",
+    "name": "Codex: Space Marines",
+    "description": "The essential companion for Space Marine players. Contains datasheets, stratagems, relics, warlord traits, and background lore for the Adeptus Astartes and their successor Chapters.",
+    "price": 55,
+    "rating": 4,
+    "tags": ["books"]
+  },
+  {
+    "id": "Codex_chaos_space_marines",
+    "name": "Codex: Chaos Space Marines",
+    "description": "Complete army book for the Heretic Astartes. Includes datasheets, dark pacts, legion rules, and the dark history of the Traitor Legions who turned against the Emperor.",
+    "price": 55,
+    "rating": 4,
+    "tags": ["books"]
+  },
+  {
+    "id": "Sector_mechanicus_ruins",
+    "name": "Sector Mechanicus Ruins",
+    "description": "Modular terrain set of ruined industrial buildings. Provides line-of-sight blocking cover and elevated positions. Compatible with other Sector Mechanicus kits for expanded layouts.",
+    "price": 50,
+    "rating": 4,
+    "tags": ["terrain"]
+  },
+  {
+    "id": "Battlezone_fronteris",
+    "name": "Battlezone Fronteris",
+    "description": "Large terrain set featuring frontier outpost buildings, walls, and scatter terrain. Provides a complete battlefield setup for Warhammer 40K games. Push-fit assembly.",
+    "price": 90,
+    "rating": 5,
+    "tags": ["terrain"]
+  },
+  {
+    "id": "Aegis_defence_line",
+    "name": "Aegis Defence Line",
+    "description": "Fortification terrain set featuring interconnecting barricade sections and a quad-gun emplacement. Provides reliable cover saves for infantry units holding objectives.",
+    "price": 35,
+    "rating": 3,
+    "tags": ["terrain"]
+  },
+  {
+    "id": "Warhammer_40K_starter_set",
+    "name": "Warhammer 40K Starter Set",
+    "description": "Everything you need to start playing Warhammer 40K. Includes Space Marine and Tyranid miniatures, rules booklet, dice, range ruler, and a gaming mat. Perfect for two players.",
+    "price": 165,
+    "rating": 5,
+    "tags": ["starter-sets"]
+  },
+  {
+    "id": "Combat_patrol_space_marines",
+    "name": "Combat Patrol: Space Marines",
+    "description": "A complete 500-point Space Marine force in one box. Includes Captain, Intercessors, Hellblasters, and an Impulsor transport. Savings of over 25% compared to buying separately.",
+    "price": 150,
+    "rating": 5,
+    "tags": ["starter-sets"]
+  },
+  {
+    "id": "Combat_patrol_tyranids",
+    "name": "Combat Patrol: Tyranids",
+    "description": "A complete 500-point Tyranid force in one box. Includes Hive Tyrant, Termagants, Warriors, and Ripper Swarms. Ready to devour the galaxy right out of the box.",
+    "price": 150,
+    "rating": 4,
+    "tags": ["starter-sets"]
+  },
+  {
+    "id": "First strike_starter_set",
+    "name": "First Strike Starter Set",
+    "description": "The easiest way to get into Warhammer 40K. Push-fit miniatures require no glue. Includes 6 Space Marines, 6 Death Guard, a mini rulebook, and a playmat.",
+    "price": 45,
+    "rating": 4,
+    "tags": ["starter-sets"]
   }
 ]

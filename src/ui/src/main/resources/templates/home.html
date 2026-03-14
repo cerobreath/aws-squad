@@ -91,46 +91,53 @@
     </nav>
 
     <!-- HERO SECTION -->
-    <section class="relative flex items-center justify-center overflow-hidden" style="height: 600px;">
+    <section class="relative flex items-center justify-center overflow-hidden" style="height: 650px;">
       <div class="absolute inset-0">
-        <img th:src="@{/assets/img/hero.jpg}" alt="Hero" class="w-full h-full object-cover" />
-        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(10,10,18,0.85) 0%, rgba(10,10,18,0.7) 50%, rgba(10,10,18,0.95) 100%);"></div>
-        <!-- Grid pattern -->
+        <img th:src="@{/assets/img/hero1.jpg}" alt="Hero" class="w-full h-full object-cover" />
+        <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(10,10,18,0.85) 0%, rgba(10,10,18,0.6) 40%, rgba(10,10,18,0.95) 100%);"></div>
         <div class="absolute inset-0 hero-pattern"></div>
-        <!-- Red glow from bottom -->
-        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 100%, rgba(139, 0, 0, 0.15) 0%, transparent 60%);"></div>
-        <!-- Gold glow from top -->
-        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 0%, rgba(184, 134, 11, 0.1) 0%, transparent 50%);"></div>
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 100%, rgba(139, 0, 0, 0.2) 0%, transparent 60%);"></div>
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 0%, rgba(184, 134, 11, 0.12) 0%, transparent 50%);"></div>
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at center, transparent 50%, rgba(10,10,18,0.8) 100%);"></div>
         <div class="absolute bottom-0 left-0 right-0 h-48" style="background: linear-gradient(to top, #0a0a12, transparent);"></div>
       </div>
 
       <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
-        <!-- Aquila SVG -->
+        <!-- Aquila SVG with glow -->
         <div class="mb-6 flicker">
-          <svg width="120" height="60" viewBox="0 0 200 100" style="margin: 0 auto; display: block;">
+          <svg width="140" height="70" viewBox="0 0 200 100" style="margin: 0 auto; display: block;">
             <defs>
               <linearGradient id="aquilaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" style="stop-color:#f0d060;stop-opacity:1" />
                 <stop offset="100%" style="stop-color:#8a6508;stop-opacity:1" />
               </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
             </defs>
-            <path d="M100 10 L70 35 L10 25 L40 50 L10 75 L70 65 L100 90 L130 65 L190 75 L160 50 L190 25 L130 35 Z" fill="url(#aquilaGrad)" opacity="0.8"/>
+            <path d="M100 10 L70 35 L10 25 L40 50 L10 75 L70 65 L100 90 L130 65 L190 75 L160 50 L190 25 L130 35 Z" fill="url(#aquilaGrad)" opacity="0.8" filter="url(#glow)"/>
             <circle cx="100" cy="50" r="10" fill="#daa520"/>
             <circle cx="100" cy="50" r="5" fill="#0a0a12"/>
           </svg>
         </div>
 
+        <!-- Imperial designation -->
+        <p class="text-xs mb-3" style="color: #5a4a2a; letter-spacing: 0.4em; font-family: 'Cinzel', serif; text-transform: uppercase;">
+          ++ Authorized by the High Lords of Terra ++
+        </p>
+
         <!-- Brand name -->
-        <h1 class="font-bold text-white mb-2 pulse-gold" style="font-family: 'Cinzel Decorative', serif; font-size: 3rem; letter-spacing: 0.15em; text-shadow: 0 0 40px rgba(184, 134, 11, 0.4);">
+        <h1 class="font-bold text-white mb-2 pulse-gold" style="font-family: 'Cinzel Decorative', serif; font-size: 3.2rem; letter-spacing: 0.15em; text-shadow: 0 0 40px rgba(184, 134, 11, 0.4);">
           WARHAMMER <span style="color: #daa520;">AWS</span> 40K
         </h1>
 
         <!-- Ornamental line -->
-        <div class="flex items-center justify-center gap-4 mb-4" style="max-width: 400px; margin: 0 auto;">
+        <div class="flex items-center justify-center gap-4 mb-4" style="max-width: 450px; margin: 0 auto;">
           <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #b8860b);"></div>
-          <span style="color: #b8860b; font-size: 0.8rem;">&#10022;</span>
+          <span style="color: #b8860b; font-size: 0.8rem;">&#9760;</span>
           <span style="color: #b8860b; font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase;">Imperial Armoury</span>
-          <span style="color: #b8860b; font-size: 0.8rem;">&#10022;</span>
+          <span style="color: #b8860b; font-size: 0.8rem;">&#9760;</span>
           <div style="flex: 1; height: 1px; background: linear-gradient(90deg, #b8860b, transparent);"></div>
         </div>
 
@@ -142,19 +149,20 @@
           <a
             id="shop-now"
             th:href="@{/catalog}"
-            class="relative inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold text-white rounded btn-imperial overflow-hidden"
+            class="relative inline-flex items-center gap-2 px-10 py-3.5 text-sm font-semibold text-white rounded btn-imperial overflow-hidden warp-glow"
           >
             <span class="relative z-10" th:text="#{hero.shopnow}">Enter the Armoury</span>
             <i class="fas fa-arrow-right relative z-10"></i>
-            <div class="absolute inset-0 h-full w-[200%] animate-beam bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
           </a>
         </div>
 
         <!-- Bottom skulls -->
-        <div class="mt-8 flex items-center justify-center gap-6" style="opacity: 0.25;">
-          <span style="color: #b8860b;">&#9760;</span>
-          <span style="color: #b8860b;">&#9760;</span>
-          <span style="color: #b8860b;">&#9760;</span>
+        <div class="mt-10 flex items-center justify-center gap-8" style="opacity: 0.2;">
+          <span style="color: #b8860b; font-size: 0.8rem;">&#9760;</span>
+          <span style="color: #8b0000; font-size: 0.6rem;">&#10022;</span>
+          <span style="color: #b8860b; font-size: 1rem;">&#9760;</span>
+          <span style="color: #8b0000; font-size: 0.6rem;">&#10022;</span>
+          <span style="color: #b8860b; font-size: 0.8rem;">&#9760;</span>
         </div>
       </div>
     </section>
@@ -163,12 +171,15 @@
     <main class="flex-grow" style="background-color: #0a0a12;">
 
       <!-- Popular products -->
-      <section class="max-w-5xl mx-auto px-4 py-12">
+      <section class="max-w-5xl mx-auto px-4 py-14">
         <!-- Section header with ornaments -->
         <div class="text-center mb-10">
           <div class="aquila-divider">
             <span style="color: #daa520; font-size: 1.2rem;">&#9760;</span>
           </div>
+          <p class="text-xs mb-2" style="color: #5a4a2a; font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 0.3em;">
+            Blessed by the Omnissiah
+          </p>
           <h2 class="text-2xl font-bold mb-2" th:text="#{home.popularitems}" style="color: #daa520; letter-spacing: 0.1em;">
             Requisitions of the Hour
           </h2>
@@ -258,6 +269,79 @@
                 Psychic communication from our sanctioned Astropaths, available across all five Segmentae of the Imperium. Response time: 1-999 Terran years.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FACTIONS BANNER -->
+      <section class="py-14" style="background: #0a0a12;">
+        <div class="max-w-5xl mx-auto px-4">
+          <div class="text-center mb-10">
+            <div class="aquila-divider">
+              <span style="color: #8b0000; font-size: 1rem;">&#9760;</span>
+            </div>
+            <h2 class="text-2xl font-bold mb-1" style="color: #daa520; letter-spacing: 0.1em;">
+              Choose Your Allegiance
+            </h2>
+            <p class="text-xs" style="color: #5a4a2a; font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 0.2em;">
+              Every Warrior Must Serve
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a th:href="@{/catalog(tag='space-marines')}" class="block p-6 rounded-lg text-center transition-all duration-300" style="background: linear-gradient(180deg, #16162a, #0e0e1a); border: 1px solid rgba(30, 90, 180, 0.3);"
+               onmouseover="this.style.borderColor='rgba(30, 90, 180, 0.7)'; this.style.boxShadow='0 0 25px rgba(30, 90, 180, 0.15)';"
+               onmouseout="this.style.borderColor='rgba(30, 90, 180, 0.3)'; this.style.boxShadow='none';">
+              <i class="fas fa-shield-halved text-2xl mb-3" style="color: #4a8adf;"></i>
+              <p class="text-sm font-semibold" style="color: #7ab0ff; font-family: 'Cinzel', serif;">Space Marines</p>
+              <p class="text-xs mt-1" style="color: #5a4a2a;">Adeptus Astartes</p>
+            </a>
+
+            <a th:href="@{/catalog(tag='chaos')}" class="block p-6 rounded-lg text-center transition-all duration-300" style="background: linear-gradient(180deg, #2a1216, #1a0a0e); border: 1px solid rgba(180, 30, 30, 0.3);"
+               onmouseover="this.style.borderColor='rgba(180, 30, 30, 0.7)'; this.style.boxShadow='0 0 25px rgba(180, 30, 30, 0.15)';"
+               onmouseout="this.style.borderColor='rgba(180, 30, 30, 0.3)'; this.style.boxShadow='none';">
+              <i class="fas fa-fire text-2xl mb-3" style="color: #cc3333;"></i>
+              <p class="text-sm font-semibold" style="color: #ff5555; font-family: 'Cinzel', serif;">Chaos</p>
+              <p class="text-xs mt-1" style="color: #5a4a2a;">Heretic Astartes</p>
+            </a>
+
+            <a th:href="@{/catalog(tag='xenos')}" class="block p-6 rounded-lg text-center transition-all duration-300" style="background: linear-gradient(180deg, #12201a, #0a180e); border: 1px solid rgba(30, 180, 90, 0.3);"
+               onmouseover="this.style.borderColor='rgba(30, 180, 90, 0.7)'; this.style.boxShadow='0 0 25px rgba(30, 180, 90, 0.15)';"
+               onmouseout="this.style.borderColor='rgba(30, 180, 90, 0.3)'; this.style.boxShadow='none';">
+              <i class="fas fa-bug text-2xl mb-3" style="color: #33cc66;"></i>
+              <p class="text-sm font-semibold" style="color: #55ff88; font-family: 'Cinzel', serif;">Xenos</p>
+              <p class="text-xs mt-1" style="color: #5a4a2a;">Alien Threats</p>
+            </a>
+
+            <a th:href="@{/catalog(tag='starter-sets')}" class="block p-6 rounded-lg text-center transition-all duration-300" style="background: linear-gradient(180deg, #1a1a16, #12120e); border: 1px solid rgba(184, 134, 11, 0.3);"
+               onmouseover="this.style.borderColor='rgba(184, 134, 11, 0.7)'; this.style.boxShadow='0 0 25px rgba(184, 134, 11, 0.15)';"
+               onmouseout="this.style.borderColor='rgba(184, 134, 11, 0.3)'; this.style.boxShadow='none';">
+              <i class="fas fa-box-open text-2xl mb-3" style="color: #daa520;"></i>
+              <p class="text-sm font-semibold" style="color: #f0d060; font-family: 'Cinzel', serif;">Starter Sets</p>
+              <p class="text-xs mt-1" style="color: #5a4a2a;">Begin Your Crusade</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- IMPERIAL DECREE BANNER -->
+      <section class="py-10 warp-rift">
+        <div class="max-w-3xl mx-auto px-4 text-center">
+          <div class="parchment-panel rounded-lg p-8">
+            <div class="mb-4" style="opacity: 0.3;">
+              <svg width="50" height="25" viewBox="0 0 200 100" style="margin: 0 auto; display: block;">
+                <path d="M100 10 L70 35 L10 25 L40 50 L10 75 L70 65 L100 90 L130 65 L190 75 L160 50 L190 25 L130 35 Z" fill="#daa520"/>
+              </svg>
+            </div>
+            <p class="text-xs mb-3" style="color: #b8860b; font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 0.3em;">
+              Imperial Decree #40000-AWS-001
+            </p>
+            <p class="text-lg mb-2" style="color: #e8d9b0; font-family: 'IM Fell English', serif; font-style: italic;">
+              "The Emperor expects every citizen to be armed, every soldier to be equipped, and every requisition to be fulfilled without delay."
+            </p>
+            <p class="text-xs" style="color: #5a4a2a;">
+              &mdash; Departmento Munitorum Directive, M41.999
+            </p>
           </div>
         </div>
       </section>

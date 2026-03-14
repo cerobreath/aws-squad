@@ -38,11 +38,8 @@
             >Tag</span>
             <!-- Skull rating -->
             <div class="flex items-center gap-1">
-              <i class="fas fa-skull" style="color: #b8860b; font-size: 0.65rem;"></i>
-              <i class="fas fa-skull" style="color: #b8860b; font-size: 0.65rem;"></i>
-              <i class="fas fa-skull" style="color: #b8860b; font-size: 0.65rem;"></i>
-              <i class="fas fa-skull" style="color: #2a2a3e; font-size: 0.65rem;"></i>
-              <i class="fas fa-skull" style="color: #2a2a3e; font-size: 0.65rem;"></i>
+              <i class="fas fa-skull" th:each="i : ${#numbers.sequence(1, 5)}"
+                 th:style="${i <= item.rating} ? 'color: #b8860b; font-size: 0.65rem;' : 'color: #2a2a3e; font-size: 0.65rem;'"></i>
             </div>
           </div>
 

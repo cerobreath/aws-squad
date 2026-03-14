@@ -2,6 +2,8 @@
 
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
 
+### 🇷🇺 [Обращение к гражданам России](/docs/ToRussianPeople.md)
+
 # AWS Infrastructure for Retail Store Sample App
 
 [![Deploy](https://github.com/cerobreath/aws-core/actions/workflows/deploy.yml/badge.svg)](https://github.com/cerobreath/aws-core/actions/workflows/deploy.yml)

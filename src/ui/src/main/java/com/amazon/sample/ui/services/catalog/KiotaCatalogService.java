@@ -23,6 +23,7 @@ import com.amazon.sample.ui.services.catalog.model.CatalogMapper;
 import com.amazon.sample.ui.services.catalog.model.Product;
 import com.amazon.sample.ui.services.catalog.model.ProductPage;
 import com.amazon.sample.ui.services.catalog.model.ProductTag;
+import java.util.Objects;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -65,6 +66,7 @@ public class KiotaCatalogService implements CatalogService {
         })
     )
       .map(mapper::product)
+      .map(this::applyDerivedRating)
       .collectList()
       .zipWith(response, (p, r) -> new ProductPage(page, size, r.getSize(), p));
   }
@@ -73,7 +75,9 @@ public class KiotaCatalogService implements CatalogService {
   public Mono<Product> getProduct(String productId) {
     return Mono.just(
       this.catalogClient.catalog().products().byId(productId).get()
-    ).map(mapper::product);
+    )
+      .map(mapper::product)
+      .map(this::applyDerivedRating);
   }
 
   @Override
@@ -81,5 +85,15 @@ public class KiotaCatalogService implements CatalogService {
     return Flux.fromIterable(this.catalogClient.catalog().tags().get()).map(
       mapper::tag
     );
+  }
+
+  private Product applyDerivedRating(Product product) {
+    if (product.getRating() > 0) {
+      return product;
+    }
+
+    int rating = Math.floorMod(Objects.hashCode(product.getId()), 4) + 2;
+    product.setRating(rating);
+    return product;
   }
 }

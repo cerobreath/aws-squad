@@ -30,6 +30,12 @@ on:
       hostname:
         required: true
         type: string
+      ui_image:
+        required: true
+        type: string
+      ui_tag:
+        required: true
+        type: string
     secrets:
       AWS_ROLE_ARN:
         required: true
@@ -149,6 +155,8 @@ jobs:
             --namespace argocd \
             --set acmCertificateArn=${{ inputs.origin_acm_certificate_arn }} \
             --set hostname=${{ inputs.hostname }} \
+            --set ui.image.repository=${{ inputs.ui_image }} \
+            --set ui.image.tag=${{ inputs.ui_tag }} \
             | kubectl apply -f -
 
           helm template root-app \

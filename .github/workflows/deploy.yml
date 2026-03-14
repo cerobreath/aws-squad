@@ -6,6 +6,7 @@ on:
     paths:
       - "k8s/**"
       - "terraform/**"
+      - "src/ui/**"
       - ".github/workflows/**"
   workflow_dispatch:
     inputs:
@@ -39,8 +40,20 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
 
-  deploy-staging:
+  build-ui-staging:
+    if: github.ref == 'refs/heads/staging' || inputs.environment == 'staging'
     needs: [terraform-staging]
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      context: src/ui
+      ecr_url: ${{ needs.terraform-staging.outputs.ecr_frontend_url }}
+      cache_scope: ui
+      aws_region: eu-central-1
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+  deploy-staging:
+    needs: [terraform-staging, build-ui-staging]
     uses: ./.github/workflows/_deploy-env.yml
     with:
       environment: staging
@@ -52,6 +65,8 @@ jobs:
       argocd_acm_certificate_arn: ${{ needs.terraform-staging.outputs.argocd_acm_certificate_arn }}
       grafana_acm_certificate_arn: ${{ needs.terraform-staging.outputs.grafana_acm_certificate_arn }}
       hostname: origin-staging.shop.whiteforge.ai
+      ui_image: ${{ needs.terraform-staging.outputs.ecr_frontend_url }}
+      ui_tag: ${{ needs.build-ui-staging.outputs.image_tag }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -74,8 +89,20 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
 
-  deploy-production:
+  build-ui-production:
+    if: github.ref == 'refs/heads/main' || inputs.environment == 'production'
     needs: [terraform-production]
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      context: src/ui
+      ecr_url: ${{ needs.terraform-production.outputs.ecr_frontend_url }}
+      cache_scope: ui
+      aws_region: eu-central-1
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+  deploy-production:
+    needs: [terraform-production, build-ui-production]
     uses: ./.github/workflows/_deploy-env.yml
     with:
       environment: production
@@ -87,6 +114,8 @@ jobs:
       argocd_acm_certificate_arn: ${{ needs.terraform-production.outputs.argocd_acm_certificate_arn }}
       grafana_acm_certificate_arn: ${{ needs.terraform-production.outputs.grafana_acm_certificate_arn }}
       hostname: origin.shop.whiteforge.ai
+      ui_image: ${{ needs.terraform-production.outputs.ecr_frontend_url }}
+      ui_tag: ${{ needs.build-ui-production.outputs.image_tag }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -94,7 +94,7 @@ spec:
               - name: telegram
                 telegram_configs:
                   - bot_token: {{ .Values.telegram.botToken | quote }}
-                    chat_id: {{ .Values.telegram.chatId | atoi }}
+                    chat_id: {{ .Values.telegram.chatId | int }}
                     parse_mode: HTML
                     message: |
                       {{`{{ range .Alerts }}`}}

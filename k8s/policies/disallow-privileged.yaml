@@ -32,8 +32,8 @@ spec:
         pattern:
           spec:
             containers:
-              - securityContext:
-                  privileged: "!true"
+              - =(securityContext):
+                  =(privileged): "!true"
             =(initContainers):
-              - securityContext:
-                  privileged: "!true"
+              - =(securityContext):
+                  =(privileged): "!true"

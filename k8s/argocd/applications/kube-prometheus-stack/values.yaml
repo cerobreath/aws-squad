@@ -2,3 +2,6 @@ grafana:
   acmCertificateArn: ""
   adminPassword: ""
   hostname: ""
+telegram:
+  botToken: ""
+  chatId: ""

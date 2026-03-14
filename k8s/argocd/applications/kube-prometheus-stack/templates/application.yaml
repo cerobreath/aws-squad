@@ -41,8 +41,34 @@ spec:
                     requests:
                       storage: 10Gi
                   storageClassName: gp2
+            additionalScrapeConfigs:
+              - job_name: retail-store-ui
+                kubernetes_sd_configs:
+                  - role: pod
+                    namespaces:
+                      names:
+                        - retail-store
+                relabel_configs:
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                    action: keep
+                    regex: "true"
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                    action: replace
+                    target_label: __metrics_path__
+                    regex: (.+)
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port, __meta_kubernetes_pod_ip]
+                    action: replace
+                    target_label: __address__
+                    regex: (\d+);(.+)
+                    replacement: $2:$1
+                  - source_labels: [__meta_kubernetes_pod_name]
+                    action: replace
+                    target_label: pod
+                  - source_labels: [__meta_kubernetes_namespace]
+                    action: replace
+                    target_label: namespace
 
-        # --- Alertmanager ---
+        # --- Alertmanager with Telegram ---
         alertmanager:
           alertmanagerSpec:
             resources:
@@ -51,10 +77,76 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 64Mi
+          config:
+            global:
+              resolve_timeout: 5m
+            route:
+              group_by: ['alertname', 'namespace']
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 4h
+              receiver: telegram
+              routes:
+                - receiver: telegram
+                  matchers:
+                    - severity =~ "critical|warning"
+            receivers:
+              - name: telegram
+                telegram_configs:
+                  - bot_token: {{ .Values.telegram.botToken | quote }}
+                    chat_id: {{ .Values.telegram.chatId | atoi }}
+                    parse_mode: HTML
+                    message: |
+                      {{`{{ range .Alerts }}`}}
+                      {{`{{ if eq .Status "firing" }}`}}🔴 <b>FIRING</b>{{`{{ else }}`}}✅ <b>RESOLVED</b>{{`{{ end }}`}}
+                      <b>{{`{{ .Labels.alertname }}`}}</b>
+                      {{`{{ .Annotations.summary }}`}}
+                      {{`{{ .Annotations.description }}`}}
+                      <i>Severity: {{`{{ .Labels.severity }}`}}</i>
+                      {{`{{ end }}`}}
+
+        # --- Alert Rules ---
+        additionalPrometheusRulesMap:
+          retail-store-sli:
+            groups:
+              - name: retail-store.sli
+                rules:
+                  - alert: HighErrorRate
+                    expr: |
+                      (
+                        sum(rate(http_server_requests_seconds_count{namespace="retail-store", status=~"5.."}[5m]))
+                        /
+                        sum(rate(http_server_requests_seconds_count{namespace="retail-store"}[5m]))
+                      ) > 0.01
+                    for: 2m
+                    labels:
+                      severity: critical
+                    annotations:
+                      summary: "High 5xx error rate in retail-store"
+                      description: "5xx error rate is above 1% (current: {{`{{ $value | humanizePercentage }}`}})"
+                  - alert: HighAvgLatency
+                    expr: |
+                      (
+                        sum(rate(http_server_requests_seconds_sum{namespace="retail-store"}[5m]))
+                        /
+                        sum(rate(http_server_requests_seconds_count{namespace="retail-store"}[5m]))
+                      ) > 0.5
+                    for: 2m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: "High average latency in retail-store"
+                      description: "Average latency is above 500ms (current: {{`{{ $value | humanizeDuration }}`}})"
 
         # --- Grafana with NLB + SSL ---
         grafana:
           adminPassword: {{ .Values.grafana.adminPassword | quote }}
+          sidecar:
+            dashboards:
+              enabled: true
+              label: grafana_dashboard
+              labelValue: "1"
+              searchNamespace: monitoring
           service:
             type: LoadBalancer
             port: 443
@@ -113,3 +205,5 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
+      - SkipDryRunOnMissingResource=true
+      - SkipHooks=true

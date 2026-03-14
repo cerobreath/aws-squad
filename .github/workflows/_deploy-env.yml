@@ -57,6 +57,10 @@ on:
         required: true
       GRAFANA_ADMIN_PASSWORD:
         required: true
+      TELEGRAM_BOT_TOKEN:
+        required: true
+      TELEGRAM_CHAT_ID:
+        required: true
 
 jobs:
   deploy:
@@ -162,6 +166,8 @@ jobs:
             --set grafana.acmCertificateArn=${{ inputs.grafana_acm_certificate_arn }} \
             --set grafana.adminPassword=${{ secrets.GRAFANA_ADMIN_PASSWORD }} \
             --set grafana.hostname=${{ inputs.grafana_hostname }} \
+            --set telegram.botToken=${{ secrets.TELEGRAM_BOT_TOKEN }} \
+            --set telegram.chatId=${{ secrets.TELEGRAM_CHAT_ID }} \
             | kubectl apply -f -
 
           helm template retail-store-app \

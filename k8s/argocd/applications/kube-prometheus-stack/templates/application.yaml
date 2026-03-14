@@ -93,6 +93,14 @@ spec:
             limits:
               memory: 64Mi
 
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: kube-prometheus-stack-grafana
+      jsonPointers:
+        - /data/admin-password
+        - /data/admin-user
+        - /data/ldap-toml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -103,3 +111,4 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true

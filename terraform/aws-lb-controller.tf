@@ -5,7 +5,7 @@
 resource "aws_iam_policy" "aws_lb_controller" {
   name        = "${local.cluster_name}-aws-lb-controller"
   description = "IAM policy for AWS Load Balancer Controller"
-  policy      = file("${path.module}/../k8s/aws-load-balancer-controller/iam-policy.json")
+  policy      = file("${path.module}/lb-controller-iam-policy.json")
 }
 
 data "aws_iam_policy_document" "aws_lb_controller_assume_role" {

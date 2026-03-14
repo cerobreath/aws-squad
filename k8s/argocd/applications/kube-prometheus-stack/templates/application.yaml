@@ -42,6 +42,123 @@ spec:
                       storage: 10Gi
                   storageClassName: gp2
 
+        # --- Custom recording rules ---
+        additionalPrometheusRulesMap:
+          node-metrics.rules:
+            groups:
+              - name: node-metrics
+                interval: 30s
+                rules:
+                  - record: node:cpu_idle:percent
+                    expr: |
+                      avg by (instance) (
+                        rate(node_cpu_seconds_total{mode="idle"}[5m])
+                      ) * 100
+                  - record: node:memory_available:bytes
+                    expr: |
+                      node_memory_MemAvailable_bytes
+                  - record: node:filesystem_root_avail:percent
+                    expr: |
+                      (
+                        node_filesystem_avail_bytes{mountpoint="/", fstype!="", device!~"rootfs"}
+                        /
+                        node_filesystem_size_bytes{mountpoint="/", fstype!="", device!~"rootfs"}
+                      ) * 100
+              - name: cluster-health
+                interval: 30s
+                rules:
+                  - record: cluster:node_memory_available:percent
+                    expr: |
+                      (
+                        sum(node_memory_MemAvailable_bytes)
+                        /
+                        clamp_min(sum(node_memory_MemTotal_bytes), 1)
+                      ) * 100
+                  - record: cluster:pod_capacity_utilization:percent
+                    expr: |
+                      (
+                        sum(kube_pod_status_phase{phase=~"Pending|Running"} == 1)
+                        /
+                        clamp_min(sum(kube_node_status_capacity{resource="pods"}), 1)
+                      ) * 100
+                  - record: cluster:pods_pending:count
+                    expr: |
+                      sum(kube_pod_status_phase{phase="Pending"} == 1)
+                  - record: cluster:container_restarts:rate5m
+                    expr: |
+                      sum(rate(kube_pod_container_status_restarts_total[5m]))
+                  - record: cluster:cpu_throttling:percent
+                    expr: |
+                      (
+                        sum(rate(container_cpu_cfs_throttled_periods_total{container!="", image!=""}[5m]))
+                        /
+                        clamp_min(sum(rate(container_cpu_cfs_periods_total{container!="", image!=""}[5m])), 1)
+                      ) * 100
+                  - record: namespace:deployment_availability:percent
+                    expr: |
+                      (
+                        kube_deployment_status_replicas_available
+                        /
+                        clamp_min(kube_deployment_spec_replicas, 1)
+                      ) * 100
+                  - record: namespace:pvc_utilization:percent
+                    expr: |
+                      (
+                        kubelet_volume_stats_used_bytes
+                        /
+                        clamp_min(kubelet_volume_stats_capacity_bytes, 1)
+                      ) * 100
+              - name: cluster-health-alerts
+                interval: 30s
+                rules:
+                  - alert: CustomClusterPodCapacityHigh
+                    expr: |
+                      cluster:pod_capacity_utilization:percent > 85
+                    for: 15m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: Cluster pod capacity is high
+                      description: Cluster pod capacity utilization is above 85% for 15 minutes.
+                  - alert: CustomClusterPodsPendingHigh
+                    expr: |
+                      cluster:pods_pending:count > 10
+                    for: 15m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: Too many pods are pending
+                      description: More than 10 pods are pending in the cluster for 15 minutes.
+                  - alert: CustomClusterCPUThrottlingHigh
+                    expr: |
+                      cluster:cpu_throttling:percent > 25
+                    for: 15m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: Cluster CPU throttling is high
+                      description: More than 25% of container CPU periods are throttled over 15 minutes.
+                  - alert: CustomDeploymentAvailabilityDegraded
+                    expr: |
+                      namespace:deployment_availability:percent{namespace!~"kube-system|monitoring"} < 100
+                        and on (namespace, deployment)
+                      kube_deployment_spec_replicas > 0
+                    for: 15m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: Deployment availability is degraded
+                      description: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} is below desired replica availability for 15 minutes.
+                  - alert: CustomPVCUsageHigh
+                    expr: |
+                      namespace:pvc_utilization:percent > 85
+                    for: 15m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: PVC utilization is high
+                      description: PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is above 85% utilization for 15 minutes.
+
         # --- Alertmanager ---
         alertmanager:
           alertmanagerSpec:
@@ -55,6 +172,56 @@ spec:
         # --- Grafana with NLB + SSL ---
         grafana:
           adminPassword: {{ .Values.grafana.adminPassword | quote }}
+          extraObjects:
+            - |
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                name: grafana-branding-assets
+              data:
+                grafana_icon.svg: |
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+                    <title>Whiteforge Grafana Icon</title>
+                    <defs>
+                      <linearGradient id="wf-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#111827"/>
+                        <stop offset="100%" stop-color="#ea580c"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="128" height="128" rx="28" fill="url(#wf-gradient)"/>
+                    <path d="M28 28h18l10 38 8-20h18l8 20 10-38h18l-18 72H86L73 70 60 100H46L28 28z" fill="#f8fafc"/>
+                  </svg>
+                grafana_typelogo.svg: |
+                  <svg xmlns="http://www.w3.org/2000/svg" width="320" height="72" viewBox="0 0 320 72" role="img" aria-labelledby="title">
+                    <title>Whiteforge</title>
+                    <rect width="320" height="72" rx="16" fill="#111827"/>
+                    <path d="M22 16h10l6 24 6-13h8l6 13 6-24h10L67 56H57L48 37l-9 19H29L22 16z" fill="#ea580c"/>
+                    <text x="92" y="46" fill="#f8fafc" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="2">WHITEFORGE</text>
+                  </svg>
+              binaryData:
+                fav32.png: {{ .Files.Get "assets/logo.png" | b64enc }}
+                apple-touch-icon.png: {{ .Files.Get "assets/logo.png" | b64enc }}
+          extraConfigmapMounts:
+            - name: grafana-branding-icon
+              mountPath: /usr/share/grafana/public/img/grafana_icon.svg
+              subPath: grafana_icon.svg
+              configMap: grafana-branding-assets
+              readOnly: true
+            - name: grafana-branding-typelogo
+              mountPath: /usr/share/grafana/public/img/grafana_typelogo.svg
+              subPath: grafana_typelogo.svg
+              configMap: grafana-branding-assets
+              readOnly: true
+            - name: grafana-branding-favicon
+              mountPath: /usr/share/grafana/public/img/fav32.png
+              subPath: fav32.png
+              configMap: grafana-branding-assets
+              readOnly: true
+            - name: grafana-branding-apple-touch-icon
+              mountPath: /usr/share/grafana/public/img/apple-touch-icon.png
+              subPath: apple-touch-icon.png
+              configMap: grafana-branding-assets
+              readOnly: true
           service:
             type: LoadBalancer
             port: 443
@@ -69,6 +236,721 @@ spec:
           grafana.ini:
             server:
               root_url: https://grafana.shop.whiteforge.ai
+          dashboardProviders:
+            dashboardproviders.yaml:
+              apiVersion: 1
+              providers:
+                - name: default
+                  orgId: 1
+                  folder: ""
+                  type: file
+                  disableDeletion: false
+                  editable: true
+                  options:
+                    path: /var/lib/grafana/dashboards/default
+          dashboards:
+            default:
+              nodes:
+                json: |
+                  {
+                    "annotations": {
+                      "list": [
+                        {
+                          "builtIn": 1,
+                          "datasource": {
+                            "type": "grafana",
+                            "uid": "-- Grafana --"
+                          },
+                          "enable": true,
+                          "hide": true,
+                          "iconColor": "rgba(0, 211, 255, 1)",
+                          "name": "Annotations & Alerts",
+                          "type": "dashboard"
+                        }
+                      ]
+                    },
+                    "editable": true,
+                    "fiscalYearStartMonth": 0,
+                    "graphTooltip": 0,
+                    "id": null,
+                    "links": [],
+                    "panels": [
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "max": 100,
+                            "min": 0,
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "red",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 30
+                                },
+                                {
+                                  "color": "green",
+                                  "value": 70
+                                }
+                              ]
+                            },
+                            "unit": "percent"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 0,
+                          "y": 0
+                        },
+                        "id": 1,
+                        "options": {
+                          "colorMode": "background",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "lastNotNull"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "node:cpu_idle:percent",
+                            "legendFormat": "{{instance}}",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "CPU Idle",
+                        "type": "stat"
+                      },
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "continuous-GrYlRd"
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "red",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 2147483648
+                                },
+                                {
+                                  "color": "green",
+                                  "value": 8589934592
+                                }
+                              ]
+                            },
+                            "unit": "bytes"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 8,
+                          "y": 0
+                        },
+                        "id": 2,
+                        "options": {
+                          "colorMode": "value",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "lastNotNull"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "node:memory_available:bytes",
+                            "legendFormat": "{{instance}}",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "Memory Available",
+                        "type": "stat"
+                      },
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "max": 100,
+                            "min": 0,
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "red",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 20
+                                },
+                                {
+                                  "color": "green",
+                                  "value": 40
+                                }
+                              ]
+                            },
+                            "unit": "percent"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 16,
+                          "y": 0
+                        },
+                        "id": 3,
+                        "options": {
+                          "colorMode": "background",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "lastNotNull"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "node:filesystem_root_avail:percent",
+                            "legendFormat": "{{instance}}",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "Root Disk Available",
+                        "type": "stat"
+                      }
+                    ],
+                    "refresh": "30s",
+                    "schemaVersion": 39,
+                    "style": "dark",
+                    "tags": [
+                      "nodes",
+                      "infrastructure"
+                    ],
+                    "templating": {
+                      "list": []
+                    },
+                    "time": {
+                      "from": "now-1h",
+                      "to": "now"
+                    },
+                    "timepicker": {},
+                    "timezone": "",
+                    "title": "Nodes",
+                    "uid": "nodes-overview",
+                    "version": 1,
+                    "weekStart": ""
+                  }
+              cluster-health:
+                json: |
+                  {
+                    "annotations": {
+                      "list": [
+                        {
+                          "builtIn": 1,
+                          "datasource": {
+                            "type": "grafana",
+                            "uid": "-- Grafana --"
+                          },
+                          "enable": true,
+                          "hide": true,
+                          "iconColor": "rgba(0, 211, 255, 1)",
+                          "name": "Annotations & Alerts",
+                          "type": "dashboard"
+                        }
+                      ]
+                    },
+                    "editable": true,
+                    "fiscalYearStartMonth": 0,
+                    "graphTooltip": 0,
+                    "id": null,
+                    "links": [],
+                    "panels": [
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "max": 100,
+                            "min": 0,
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "green",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 70
+                                },
+                                {
+                                  "color": "red",
+                                  "value": 85
+                                }
+                              ]
+                            },
+                            "unit": "percent"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 0,
+                          "y": 0
+                        },
+                        "id": 11,
+                        "options": {
+                          "colorMode": "background",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "lastNotNull"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "cluster:pod_capacity_utilization:percent",
+                            "legendFormat": "cluster",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "Pod Capacity",
+                        "type": "stat"
+                      },
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "green",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 1
+                                },
+                                {
+                                  "color": "red",
+                                  "value": 10
+                                }
+                              ]
+                            },
+                            "unit": "short"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 8,
+                          "y": 0
+                        },
+                        "id": 12,
+                        "options": {
+                          "colorMode": "background",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "lastNotNull"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "cluster:pods_pending:count",
+                            "legendFormat": "pending",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "Pods Pending",
+                        "type": "stat"
+                      },
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "green",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 0.1
+                                },
+                                {
+                                  "color": "red",
+                                  "value": 1
+                                }
+                              ]
+                            },
+                            "unit": "ops"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 16,
+                          "y": 0
+                        },
+                        "id": 13,
+                        "options": {
+                          "colorMode": "background",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "lastNotNull"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "cluster:container_restarts:rate5m",
+                            "legendFormat": "restarts/s",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "Container Restarts",
+                        "type": "stat"
+                      },
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "max": 100,
+                            "min": 0,
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "green",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 10
+                                },
+                                {
+                                  "color": "red",
+                                  "value": 25
+                                }
+                              ]
+                            },
+                            "unit": "percent"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 0,
+                          "y": 8
+                        },
+                        "id": 14,
+                        "options": {
+                          "colorMode": "background",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "lastNotNull"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "cluster:cpu_throttling:percent",
+                            "legendFormat": "throttling",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "CPU Throttling",
+                        "type": "stat"
+                      },
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "max": 100,
+                            "min": 0,
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "red",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 10
+                                },
+                                {
+                                  "color": "green",
+                                  "value": 25
+                                }
+                              ]
+                            },
+                            "unit": "percent"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 8,
+                          "y": 8
+                        },
+                        "id": 15,
+                        "options": {
+                          "colorMode": "background",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "lastNotNull"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "cluster:node_memory_available:percent",
+                            "legendFormat": "cluster",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "Memory Available",
+                        "type": "stat"
+                      },
+                      {
+                        "datasource": {
+                          "type": "prometheus",
+                          "uid": "prometheus"
+                        },
+                        "fieldConfig": {
+                          "defaults": {
+                            "color": {
+                              "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "max": 100,
+                            "min": 0,
+                            "thresholds": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "green",
+                                  "value": null
+                                },
+                                {
+                                  "color": "yellow",
+                                  "value": 70
+                                },
+                                {
+                                  "color": "red",
+                                  "value": 85
+                                }
+                              ]
+                            },
+                            "unit": "percent"
+                          },
+                          "overrides": []
+                        },
+                        "gridPos": {
+                          "h": 8,
+                          "w": 8,
+                          "x": 16,
+                          "y": 8
+                        },
+                        "id": 16,
+                        "options": {
+                          "colorMode": "background",
+                          "graphMode": "area",
+                          "justifyMode": "auto",
+                          "orientation": "auto",
+                          "reduceOptions": {
+                            "calcs": [
+                              "max"
+                            ],
+                            "fields": "",
+                            "values": false
+                          },
+                          "textMode": "auto"
+                        },
+                        "pluginVersion": "11.0.0",
+                        "targets": [
+                          {
+                            "editorMode": "code",
+                            "expr": "namespace:pvc_utilization:percent",
+                            "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
+                            "range": true,
+                            "refId": "A"
+                          }
+                        ],
+                        "title": "Max PVC Usage",
+                        "type": "stat"
+                      }
+                    ],
+                    "refresh": "30s",
+                    "schemaVersion": 39,
+                    "style": "dark",
+                    "tags": [
+                      "cluster",
+                      "infrastructure",
+                      "capacity"
+                    ],
+                    "templating": {
+                      "list": []
+                    },
+                    "time": {
+                      "from": "now-1h",
+                      "to": "now"
+                    },
+                    "timepicker": {},
+                    "timezone": "",
+                    "title": "Cluster Health",
+                    "uid": "cluster-health",
+                    "version": 1,
+                    "weekStart": ""
+                  }
           resources:
             requests:
               cpu: 50m

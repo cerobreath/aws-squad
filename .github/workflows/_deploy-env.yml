@@ -36,6 +36,12 @@ on:
       ui_tag:
         required: true
         type: string
+      velero_bucket_name:
+        required: true
+        type: string
+      velero_role_arn:
+        required: true
+        type: string
     secrets:
       AWS_ROLE_ARN:
         required: true
@@ -158,6 +164,22 @@ jobs:
             --set ui.image.repository=${{ inputs.ui_image }} \
             --set ui.image.tag=${{ inputs.ui_tag }} \
             | kubectl apply -f -
+
+          helm template velero-app \
+            k8s/argocd/applications/velero \
+            --namespace argocd \
+            --set velero.bucketName=${{ inputs.velero_bucket_name }} \
+            --set velero.roleArn=${{ inputs.velero_role_arn }} \
+            --set velero.awsRegion=${{ inputs.aws_region }} \
+            | kubectl apply -f -
+
+          helm template kyverno-app \
+            k8s/argocd/applications/kyverno \
+            --namespace argocd | kubectl apply -f -
+
+          helm template kyverno-policies-app \
+            k8s/argocd/applications/kyverno-policies \
+            --namespace argocd | kubectl apply -f -
 
           helm template root-app \
             k8s/argocd/applications/root \

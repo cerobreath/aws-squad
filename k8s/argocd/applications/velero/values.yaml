@@ -1,0 +1,4 @@
+velero:
+  bucketName: ""
+  roleArn: ""
+  awsRegion: eu-central-1

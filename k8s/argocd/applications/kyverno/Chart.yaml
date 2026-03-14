@@ -1,0 +1,4 @@
+apiVersion: v2
+name: kyverno-app
+description: ArgoCD Application for Kyverno policy engine
+version: 0.1.0

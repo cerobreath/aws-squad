@@ -59,3 +59,20 @@ jobs:
             ${{ inputs.ecr_url }}:latest
           cache-from: type=gha${{ inputs.cache_scope != '' && format(',scope={0}', inputs.cache_scope) || '' }}
           cache-to: type=gha,mode=max${{ inputs.cache_scope != '' && format(',scope={0}', inputs.cache_scope) || '' }}
+
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ inputs.ecr_url }}:${{ steps.meta.outputs.image_tag }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Upload Trivy scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-scan-${{ inputs.cache_scope || 'image' }}
+          path: trivy-results.sarif

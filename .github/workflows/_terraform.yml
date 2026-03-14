@@ -39,6 +39,10 @@ on:
         value: ${{ jobs.terraform.outputs.grafana_acm_certificate_arn }}
       ecr_frontend_url:
         value: ${{ jobs.terraform.outputs.ecr_frontend_url }}
+      velero_bucket_name:
+        value: ${{ jobs.terraform.outputs.velero_bucket_name }}
+      velero_role_arn:
+        value: ${{ jobs.terraform.outputs.velero_role_arn }}
 
 jobs:
   terraform:
@@ -54,6 +58,8 @@ jobs:
       argocd_acm_certificate_arn: ${{ steps.tf.outputs.argocd_acm_certificate_arn }}
       grafana_acm_certificate_arn: ${{ steps.tf.outputs.grafana_acm_certificate_arn }}
       ecr_frontend_url: ${{ steps.tf.outputs.ecr_frontend_url }}
+      velero_bucket_name: ${{ steps.tf.outputs.velero_bucket_name }}
+      velero_role_arn: ${{ steps.tf.outputs.velero_role_arn }}
     steps:
       - uses: actions/checkout@v4
 
@@ -88,3 +94,5 @@ jobs:
           echo "argocd_acm_certificate_arn=$(terraform output -raw argocd_acm_certificate_arn)" >> "$GITHUB_OUTPUT"
           echo "grafana_acm_certificate_arn=$(terraform output -raw grafana_acm_certificate_arn)" >> "$GITHUB_OUTPUT"
           echo "ecr_frontend_url=$(terraform output -raw ecr_frontend_url)" >> "$GITHUB_OUTPUT"
+          echo "velero_bucket_name=$(terraform output -raw velero_bucket_name)" >> "$GITHUB_OUTPUT"
+          echo "velero_role_arn=$(terraform output -raw velero_role_arn)" >> "$GITHUB_OUTPUT"

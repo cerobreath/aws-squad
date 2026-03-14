@@ -104,3 +104,13 @@ output "grafana_acm_certificate_arn" {
   value       = aws_acm_certificate_validation.grafana.certificate_arn
 }
 
+output "velero_bucket_name" {
+  description = "S3 bucket name for Velero backups"
+  value       = aws_s3_bucket.velero.id
+}
+
+output "velero_role_arn" {
+  description = "IAM role ARN for Velero (IRSA)"
+  value       = aws_iam_role.velero.arn
+}
+

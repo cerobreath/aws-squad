@@ -116,5 +116,107 @@
         </div>
       </div>
     </div>
+
+    <div id="minute-of-silence-modal" class="minute-of-silence-modal" aria-hidden="true">
+      <div class="minute-of-silence-backdrop"></div>
+      <div class="minute-of-silence-card gothic-frame" role="dialog" aria-modal="true" aria-labelledby="minute-of-silence-title">
+        <p class="minute-of-silence-kicker">9:00 National Minute of Silence</p>
+        <h2 id="minute-of-silence-title" class="minute-of-silence-title">
+          Please pause with Ukraine.
+        </h2>
+        <p class="minute-of-silence-body">
+          Every day at 9:00, Ukraine observes a minute of silence to honor the people killed by Russia's war. Please wait with respect until the minute is over.
+        </p>
+        <div id="minute-of-silence-timer" class="minute-of-silence-timer" aria-live="polite">
+          <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+          <span>01:00 remaining</span>
+        </div>
+        <div class="minute-of-silence-actions">
+          <button id="minute-of-silence-close" type="button" class="px-6 py-3 text-white rounded btn-secondary">
+            Close
+          </button>
+          <p id="minute-of-silence-warning" class="minute-of-silence-warning" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const modal = document.getElementById("minute-of-silence-modal");
+        const closeButton = document.getElementById("minute-of-silence-close");
+        const timer = document.getElementById("minute-of-silence-timer");
+        const timerText = timer ? timer.querySelector("span") : null;
+        const warning = document.getElementById("minute-of-silence-warning");
+
+        if (!modal || !closeButton || !timer || !timerText || !warning) {
+          return;
+        }
+
+        const warningMessage = "This is not respectful. Please wait.";
+
+        const getWindowBounds = (now) => {
+          const start = new Date(now);
+          start.setHours(9, 0, 0, 0);
+          const end = new Date(start.getTime() + 60_000);
+          return { start, end };
+        };
+
+        const formatRemaining = (remainingMs) => {
+          const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+          const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, "0");
+          const seconds = String(remainingSeconds % 60).padStart(2, "0");
+          return `${minutes}:${seconds} remaining`;
+        };
+
+        const showWarning = () => {
+          warning.textContent = warningMessage;
+        };
+
+        const setVisible = (visible) => {
+          modal.classList.toggle("is-visible", visible);
+          modal.setAttribute("aria-hidden", visible ? "false" : "true");
+          document.body.style.overflow = visible ? "hidden" : "";
+          if (!visible) {
+            warning.textContent = "";
+          }
+        };
+
+        const handleDismissAttempt = (event) => {
+          event.preventDefault();
+          showWarning();
+        };
+
+        closeButton.addEventListener("click", handleDismissAttempt);
+
+        modal.addEventListener("click", (event) => {
+          if (event.target === modal || event.target.classList.contains("minute-of-silence-backdrop")) {
+            handleDismissAttempt(event);
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (modal.classList.contains("is-visible") && event.key === "Escape") {
+            handleDismissAttempt(event);
+          }
+        });
+
+        const syncMinuteOfSilence = () => {
+          const now = new Date();
+          const { start, end } = getWindowBounds(now);
+          const active = now >= start && now < end;
+
+          if (!active) {
+            setVisible(false);
+            return;
+          }
+
+          setVisible(true);
+          timerText.textContent = formatRemaining(end.getTime() - now.getTime());
+        };
+
+        syncMinuteOfSilence();
+        window.setInterval(syncMinuteOfSilence, 1000);
+      })();
+    </script>
   </body>
 </html>

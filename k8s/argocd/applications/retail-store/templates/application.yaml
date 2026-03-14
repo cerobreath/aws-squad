@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: retail-store
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/aws-containers/retail-store-sample-app.git
+    targetRevision: v1.4.0
+    path: src/app/chart
+    helm:
+      releaseName: retail-store
+      valuesObject:
+        cart:
+          fullnameOverride: carts
+        catalog:
+          fullnameOverride: catalog
+        checkout:
+          fullnameOverride: checkout
+          retail:
+            checkout:
+              endpoints:
+                orders: http://orders:80
+        orders:
+          fullnameOverride: orders
+        ui:
+          fullnameOverride: ui
+          app:
+            endpoints:
+              catalog: http://catalog:80
+              carts: http://carts:80
+              checkout: http://checkout:80
+              orders: http://orders:80
+          service:
+            type: LoadBalancer
+            port: 443
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+              service.beta.kubernetes.io/aws-load-balancer-type: external
+              service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+              service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .Values.acmCertificateArn }}
+              service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+              service.beta.kubernetes.io/aws-load-balancer-listen-ports: '[{"HTTPS":443}]'
+              external-dns.alpha.kubernetes.io/hostname: {{ .Values.hostname }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: retail-store
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -144,6 +144,13 @@ jobs:
             --set grafana.adminPassword=${{ secrets.GRAFANA_ADMIN_PASSWORD }} \
             | kubectl apply -f -
 
+          helm template retail-store-app \
+            k8s/argocd/applications/retail-store \
+            --namespace argocd \
+            --set acmCertificateArn=${{ inputs.origin_acm_certificate_arn }} \
+            --set hostname=${{ inputs.hostname }} \
+            | kubectl apply -f -
+
           helm template root-app \
             k8s/argocd/applications/root \
             --namespace argocd | kubectl apply -f -

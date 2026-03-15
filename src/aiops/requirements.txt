@@ -4,3 +4,5 @@ uvicorn[standard]
 pydantic
 nest_asyncio
 langfuse
+httpx
+kubectl-mcp-server

@@ -5,6 +5,7 @@ Supports two modes (auto-detected from ALERTMANAGER_URL):
   2. Grafana built-in alertmanager proxy        — POST {alerts:[…]} to
      /api/alertmanager/<uid>/api/v2/alerts
 """
+import json
 import logging
 import os
 from datetime import datetime, timezone
@@ -92,7 +93,7 @@ class GrafanaAlerter:
         try:
             resp = httpx.post(
                 self._alerts_endpoint,
-                json=payload,
+                content=json.dumps(payload),
                 headers=self._headers(),
                 timeout=10,
             )

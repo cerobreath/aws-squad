@@ -190,11 +190,12 @@ resource "aws_security_group" "aiops_task" {
 # -----------------------------------------------------------------------------
 
 resource "aws_lb" "aiops" {
-  name               = "${local.cluster_name}-aiops"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.aiops_alb.id]
-  subnets            = aws_subnet.public[*].id
+  name                       = "${local.cluster_name}-aiops"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.aiops_alb.id]
+  subnets                    = aws_subnet.public[*].id
+  idle_timeout               = 300
 }
 
 resource "aws_lb_target_group" "aiops" {

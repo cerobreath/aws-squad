@@ -3,6 +3,7 @@ locals {
     frontend = "${var.project_name}/frontend"
     catalog  = "${var.project_name}/catalog"
     checkout = "${var.project_name}/checkout"
+    aiops    = "${var.project_name}/aiops"
   }
 
   # ECR repos are shared across environments; staging creates them, production reads them.

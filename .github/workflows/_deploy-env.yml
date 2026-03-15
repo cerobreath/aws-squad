@@ -51,6 +51,9 @@ on:
       grafana_hostname:
         required: true
         type: string
+      aiops_image_tag:
+        required: true
+        type: string
     secrets:
       AWS_ROLE_ARN:
         required: true
@@ -247,3 +250,67 @@ jobs:
             fi
             sleep 10
           done
+
+      - name: Create Grafana service account for AIOps
+        run: |
+          GRAFANA_URL="https://${{ inputs.grafana_hostname }}"
+          echo "Waiting for Grafana at ${GRAFANA_URL}..."
+          for i in $(seq 1 30); do
+            if curl -sf "${GRAFANA_URL}/api/health" > /dev/null 2>&1; then
+              echo "Grafana is reachable"
+              break
+            fi
+            echo "  attempt $i/30"
+            sleep 10
+          done
+
+          # Check if service account already exists
+          SA_ID=$(curl -sf "${GRAFANA_URL}/api/serviceaccounts/search?query=aiops" \
+            -u "admin:${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+            | jq -r '.serviceAccounts[0].id // empty' 2>/dev/null || true)
+
+          if [ -z "$SA_ID" ]; then
+            echo "Creating Grafana service account..."
+            SA_ID=$(curl -sf -X POST "${GRAFANA_URL}/api/serviceaccounts" \
+              -H "Content-Type: application/json" \
+              -u "admin:${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+              -d '{"name":"aiops","role":"Editor","isDisabled":false}' \
+              | jq -r '.id')
+            echo "Created service account ID: $SA_ID"
+          else
+            echo "Service account already exists (ID: $SA_ID)"
+          fi
+
+          # Create a new token
+          TOKEN=$(curl -sf -X POST "${GRAFANA_URL}/api/serviceaccounts/${SA_ID}/tokens" \
+            -H "Content-Type: application/json" \
+            -u "admin:${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+            -d "{\"name\":\"aiops-${GITHUB_SHA::8}\"}" \
+            | jq -r '.key' 2>/dev/null || true)
+
+          if [ -n "$TOKEN" ] && [ "$TOKEN" != "null" ]; then
+            aws ssm put-parameter \
+              --name "/${{ inputs.cluster_name }}/aiops/grafana-token" \
+              --type SecureString \
+              --value "$TOKEN" \
+              --overwrite \
+              --region ${{ inputs.aws_region }}
+            echo "Grafana token stored in SSM"
+          else
+            echo "::warning::Could not create Grafana SA token — AIOps will use placeholder"
+          fi
+
+      - name: Deploy AIOps ECS service
+        run: |
+          ECS_CLUSTER="${{ inputs.cluster_name }}-aiops"
+          echo "Updating AIOps ECS service in cluster ${ECS_CLUSTER}..."
+
+          # Force new deployment to pick up latest image
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service aiops \
+            --force-new-deployment \
+            --region ${{ inputs.aws_region }} > /dev/null 2>&1 || echo "::warning::ECS service update failed — may need first image push"
+
+          AIOPS_HOST=$(echo "${{ inputs.grafana_hostname }}" | sed 's/grafana/aiops/')
+          echo "::notice::AIOps UI: https://${AIOPS_HOST}"

@@ -129,3 +129,13 @@ output "velero_role_arn" {
   value       = aws_iam_role.velero.arn
 }
 
+output "ecr_aiops_url" {
+  description = "ECR repository URL for aiops"
+  value       = local.ecr_urls["aiops"]
+}
+
+output "aiops_hostname" {
+  description = "AIOps hostname for this environment"
+  value       = local.aiops_domain
+}
+

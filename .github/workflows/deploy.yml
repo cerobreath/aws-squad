@@ -9,6 +9,7 @@ on:
       - "src/ui/**"
       - "src/catalog/**"
       - "src/checkout/**"
+      - "src/aiops/**"
       - ".github/workflows/**"
   workflow_dispatch:
     inputs:
@@ -78,8 +79,20 @@ jobs:
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
+  build-aiops-staging:
+    if: github.ref == 'refs/heads/staging' || inputs.environment == 'staging'
+    needs: [terraform-staging]
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      context: src/aiops
+      ecr_url: ${{ needs.terraform-staging.outputs.ecr_aiops_url }}
+      cache_scope: aiops
+      aws_region: eu-central-1
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
   deploy-staging:
-    needs: [terraform-staging, build-ui-staging, build-catalog-staging, build-checkout-staging]
+    needs: [terraform-staging, build-ui-staging, build-catalog-staging, build-checkout-staging, build-aiops-staging]
     uses: ./.github/workflows/_deploy-env.yml
     with:
       environment: staging
@@ -98,6 +111,7 @@ jobs:
       velero_role_arn: ${{ needs.terraform-staging.outputs.velero_role_arn }}
       argocd_hostname: ${{ needs.terraform-staging.outputs.argocd_hostname }}
       grafana_hostname: ${{ needs.terraform-staging.outputs.grafana_hostname }}
+      aiops_image_tag: ${{ needs.build-aiops-staging.outputs.image_tag }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -158,8 +172,20 @@ jobs:
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
+  build-aiops-production:
+    if: github.ref == 'refs/heads/main' || inputs.environment == 'production'
+    needs: [terraform-production]
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      context: src/aiops
+      ecr_url: ${{ needs.terraform-production.outputs.ecr_aiops_url }}
+      cache_scope: aiops
+      aws_region: eu-central-1
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
   deploy-production:
-    needs: [terraform-production, build-ui-production, build-catalog-production, build-checkout-production]
+    needs: [terraform-production, build-ui-production, build-catalog-production, build-checkout-production, build-aiops-production]
     uses: ./.github/workflows/_deploy-env.yml
     with:
       environment: production
@@ -178,6 +204,7 @@ jobs:
       velero_role_arn: ${{ needs.terraform-production.outputs.velero_role_arn }}
       argocd_hostname: ${{ needs.terraform-production.outputs.argocd_hostname }}
       grafana_hostname: ${{ needs.terraform-production.outputs.grafana_hostname }}
+      aiops_image_tag: ${{ needs.build-aiops-production.outputs.image_tag }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

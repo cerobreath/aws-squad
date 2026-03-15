@@ -121,6 +121,16 @@ resource "aws_eks_access_policy_association" "aiops" {
   depends_on = [aws_eks_access_entry.aiops]
 }
 
+# Allow ECS tasks to reach the EKS API (port 443) via the private endpoint
+resource "aws_security_group_rule" "aiops_to_eks" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.aiops_task.id
+  security_group_id        = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+}
+
 # -----------------------------------------------------------------------------
 # SSM Parameter for Grafana token (placeholder, updated by CI/CD)
 # -----------------------------------------------------------------------------

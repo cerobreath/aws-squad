@@ -114,6 +114,11 @@ output "grafana_hostname" {
   value       = local.grafana_domain
 }
 
+output "cluster_autoscaler_role_arn" {
+  description = "IAM role ARN for Cluster Autoscaler (IRSA)"
+  value       = aws_iam_role.cluster_autoscaler.arn
+}
+
 output "velero_bucket_name" {
   description = "S3 bucket name for Velero backups"
   value       = aws_s3_bucket.velero.id

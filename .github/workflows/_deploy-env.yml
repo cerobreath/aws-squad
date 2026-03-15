@@ -36,6 +36,9 @@ on:
       ui_tag:
         required: true
         type: string
+      cluster_autoscaler_role_arn:
+        required: true
+        type: string
       velero_bucket_name:
         required: true
         type: string
@@ -185,6 +188,14 @@ jobs:
             --set velero.bucketName=${{ inputs.velero_bucket_name }} \
             --set velero.roleArn=${{ inputs.velero_role_arn }} \
             --set velero.awsRegion=${{ inputs.aws_region }} \
+            | kubectl apply -f -
+
+          helm template cluster-autoscaler-app \
+            k8s/argocd/applications/cluster-autoscaler \
+            --namespace argocd \
+            --set clusterName=${{ inputs.cluster_name }} \
+            --set awsRegion=${{ inputs.aws_region }} \
+            --set clusterAutoscalerRoleArn=${{ inputs.cluster_autoscaler_role_arn }} \
             | kubectl apply -f -
 
           helm template kyverno-app \

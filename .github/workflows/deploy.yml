@@ -93,6 +93,7 @@ jobs:
       hostname: origin-staging.shop.whiteforge.ai
       ui_image: ${{ needs.terraform-staging.outputs.ecr_frontend_url }}
       ui_tag: ${{ needs.build-ui-staging.outputs.image_tag }}
+      cluster_autoscaler_role_arn: ${{ needs.terraform-staging.outputs.cluster_autoscaler_role_arn }}
       velero_bucket_name: ${{ needs.terraform-staging.outputs.velero_bucket_name }}
       velero_role_arn: ${{ needs.terraform-staging.outputs.velero_role_arn }}
       argocd_hostname: ${{ needs.terraform-staging.outputs.argocd_hostname }}
@@ -172,6 +173,7 @@ jobs:
       hostname: origin.shop.whiteforge.ai
       ui_image: ${{ needs.terraform-production.outputs.ecr_frontend_url }}
       ui_tag: ${{ needs.build-ui-production.outputs.image_tag }}
+      cluster_autoscaler_role_arn: ${{ needs.terraform-production.outputs.cluster_autoscaler_role_arn }}
       velero_bucket_name: ${{ needs.terraform-production.outputs.velero_bucket_name }}
       velero_role_arn: ${{ needs.terraform-production.outputs.velero_role_arn }}
       argocd_hostname: ${{ needs.terraform-production.outputs.argocd_hostname }}

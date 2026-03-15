@@ -1,0 +1,213 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: retail-store-sli-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  retail-store-sli.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "title": "Request Rate (req/s)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "fillOpacity": 10, "lineWidth": 2 },
+              "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "Total (Spring)",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m])) by (status)",
+              "legendFormat": "HTTP {{status}}",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(gin_requests_total{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "Total (Catalog)",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "title": "Error Rate (%)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "fixedColor": "red", "mode": "fixed" },
+              "custom": { "fillOpacity": 20, "lineWidth": 2 },
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 0.005 },
+                  { "color": "red", "value": 0.01 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\", status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "5xx Error Rate (Spring)",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(gin_requests_total{namespace=\"retail-store\", code=~\"5..\"}[5m])) / sum(rate(gin_requests_total{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "5xx Error Rate (Catalog)",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "title": "Latency (Avg & Max)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "fillOpacity": 5, "lineWidth": 2 },
+              "unit": "s",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 0.3 },
+                  { "color": "red", "value": 0.5 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(http_server_requests_seconds_sum{namespace=\"retail-store\"}[5m])) / sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "Avg Latency (Spring)",
+              "refId": "A"
+            },
+            {
+              "expr": "max(http_server_requests_seconds_max{namespace=\"retail-store\"})",
+              "legendFormat": "Max Latency (Spring)",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(gin_request_duration_seconds_sum{namespace=\"retail-store\"}[5m])) / sum(rate(gin_request_duration_seconds_count{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "Avg Latency (Catalog)",
+              "refId": "C"
+            },
+            {
+              "expr": "sum(rate(http_server_requests_seconds_sum{namespace=\"retail-store\"}[5m])) by (pod) / sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m])) by (pod)",
+              "legendFormat": "Avg {{pod}}",
+              "refId": "D"
+            }
+          ]
+        },
+        {
+          "title": "Request Rate by Endpoint",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "fillOpacity": 10, "lineWidth": 1 },
+              "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m])) by (uri)",
+              "legendFormat": "{{uri}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "title": "Current SLI Summary",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 24, "x": 0, "y": 16 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 0.01 }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "Request Rate" },
+                "properties": [{ "id": "unit", "value": "reqps" }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } }]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Error Rate" },
+                "properties": [{ "id": "unit", "value": "percentunit" }]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Avg Latency" },
+                "properties": [{ "id": "unit", "value": "s" }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.3 }, { "color": "red", "value": 0.5 }] } }]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Max Latency" },
+                "properties": [{ "id": "unit", "value": "s" }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] } }]
+              }
+            ]
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m])) + sum(rate(gin_requests_total{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "Request Rate",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\", status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "Error Rate",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(http_server_requests_seconds_sum{namespace=\"retail-store\"}[5m])) / sum(rate(http_server_requests_seconds_count{namespace=\"retail-store\"}[5m]))",
+              "legendFormat": "Avg Latency",
+              "refId": "C"
+            },
+            {
+              "expr": "max(http_server_requests_seconds_max{namespace=\"retail-store\"})",
+              "legendFormat": "Max Latency",
+              "refId": "D"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 39,
+      "templating": { "list": [] },
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "Retail Store SLI Dashboard",
+      "uid": "retail-store-sli",
+      "version": 1
+    }

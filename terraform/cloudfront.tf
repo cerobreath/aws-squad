@@ -4,7 +4,9 @@ locals {
   is_production    = terraform.workspace == "production"
   cloudfront_domain = local.is_production ? var.domain_name : "staging.${var.domain_name}"
   origin_domain     = local.is_production ? "origin.${var.domain_name}" : "origin-staging.${var.domain_name}"
-  argocd_domain     = "argocd.${var.domain_name}"
+  argocd_domain     = local.is_production ? "argocd.${var.domain_name}" : "argocd-staging.${var.domain_name}"
+  grafana_domain    = local.is_production ? "grafana.${var.domain_name}" : "grafana-staging.${var.domain_name}"
+  aiops_domain      = local.is_production ? "aiops.${var.domain_name}" : "aiops-staging.${var.domain_name}"
 }
 
 # ACM certificate in us-east-1 (required by CloudFront)

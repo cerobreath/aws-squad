@@ -69,14 +69,14 @@ output "ecr_frontend_url" {
   value       = local.ecr_urls["frontend"]
 }
 
-output "ecr_productcatalogservice_url" {
-  description = "ECR repository URL for productcatalogservice"
-  value       = local.ecr_urls["productcatalogservice"]
+output "ecr_catalog_url" {
+  description = "ECR repository URL for catalog"
+  value       = local.ecr_urls["catalog"]
 }
 
-output "ecr_currencyservice_url" {
-  description = "ECR repository URL for currencyservice"
-  value       = local.ecr_urls["currencyservice"]
+output "ecr_checkout_url" {
+  description = "ECR repository URL for checkout"
+  value       = local.ecr_urls["checkout"]
 }
 
 output "cloudfront_distribution_id" {
@@ -97,5 +97,45 @@ output "origin_acm_certificate_arn" {
 output "argocd_acm_certificate_arn" {
   description = "ACM certificate ARN for ArgoCD (TLS on NLB)"
   value       = aws_acm_certificate_validation.argocd.certificate_arn
+}
+
+output "grafana_acm_certificate_arn" {
+  description = "ACM certificate ARN for Grafana (TLS on NLB)"
+  value       = aws_acm_certificate_validation.grafana.certificate_arn
+}
+
+output "argocd_hostname" {
+  description = "ArgoCD hostname for this environment"
+  value       = local.argocd_domain
+}
+
+output "grafana_hostname" {
+  description = "Grafana hostname for this environment"
+  value       = local.grafana_domain
+}
+
+output "cluster_autoscaler_role_arn" {
+  description = "IAM role ARN for Cluster Autoscaler (IRSA)"
+  value       = aws_iam_role.cluster_autoscaler.arn
+}
+
+output "velero_bucket_name" {
+  description = "S3 bucket name for Velero backups"
+  value       = aws_s3_bucket.velero.id
+}
+
+output "velero_role_arn" {
+  description = "IAM role ARN for Velero (IRSA)"
+  value       = aws_iam_role.velero.arn
+}
+
+output "ecr_aiops_url" {
+  description = "ECR repository URL for aiops"
+  value       = local.ecr_urls["aiops"]
+}
+
+output "aiops_hostname" {
+  description = "AIOps hostname for this environment"
+  value       = local.aiops_domain
 }
 

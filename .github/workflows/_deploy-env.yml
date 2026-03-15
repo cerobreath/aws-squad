@@ -24,7 +24,34 @@ on:
       argocd_acm_certificate_arn:
         required: true
         type: string
+      grafana_acm_certificate_arn:
+        required: true
+        type: string
       hostname:
+        required: true
+        type: string
+      ui_image:
+        required: true
+        type: string
+      ui_tag:
+        required: true
+        type: string
+      cluster_autoscaler_role_arn:
+        required: true
+        type: string
+      velero_bucket_name:
+        required: true
+        type: string
+      velero_role_arn:
+        required: true
+        type: string
+      argocd_hostname:
+        required: true
+        type: string
+      grafana_hostname:
+        required: true
+        type: string
+      aiops_image_tag:
         required: true
         type: string
     secrets:
@@ -33,6 +60,12 @@ on:
       CLOUDFLARE_API_TOKEN:
         required: true
       ARGOCD_ADMIN_PASSWORD:
+        required: true
+      GRAFANA_ADMIN_PASSWORD:
+        required: true
+      TELEGRAM_BOT_TOKEN:
+        required: true
+      TELEGRAM_CHAT_ID:
         required: true
 
 jobs:
@@ -73,6 +106,7 @@ jobs:
             --set "configs.secret.argocdServerAdminPassword=${BCRYPT_HASH}" \
             --set "server.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert=${{ inputs.argocd_acm_certificate_arn }}" \
             --set "server.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-ports=443" \
+            --set "server.service.annotations.external-dns\.alpha\.kubernetes\.io/hostname=${{ inputs.argocd_hostname }}" \
             --timeout 5m
 
       - name: Wait for ArgoCD to be ready
@@ -85,7 +119,9 @@ jobs:
 
       - name: Apply Sealed Secrets Application
         run: |
-          kubectl apply -f k8s/argocd/applications/sealed-secrets.yaml
+          helm template sealed-secrets-app \
+            k8s/argocd/applications/sealed-secrets \
+            --namespace argocd | kubectl apply -f -
 
       - name: Wait for Sealed Secrets controller
         run: |
@@ -115,18 +151,63 @@ jobs:
               --format yaml \
           | kubectl apply -f -
 
-      - name: Apply remaining ArgoCD Applications
+      - name: Deploy ArgoCD Applications
         run: |
-          # Template LB controller with Terraform values
-          sed \
-            -e 's|CLUSTER_NAME_PLACEHOLDER|${{ inputs.cluster_name }}|g' \
-            -e 's|REGION_PLACEHOLDER|${{ inputs.aws_region }}|g' \
-            -e 's|VPC_ID_PLACEHOLDER|${{ inputs.vpc_id }}|g' \
-            -e 's|LB_ROLE_ARN_PLACEHOLDER|${{ inputs.lb_controller_role_arn }}|g' \
-            k8s/argocd/applications/lb-controller.yaml | kubectl apply -f -
+          helm template lb-controller-app \
+            k8s/argocd/applications/lb-controller \
+            --namespace argocd \
+            --set clusterName=${{ inputs.cluster_name }} \
+            --set awsRegion=${{ inputs.aws_region }} \
+            --set vpcId=${{ inputs.vpc_id }} \
+            --set lbControllerRoleArn=${{ inputs.lb_controller_role_arn }} \
+            | kubectl apply -f -
 
-          kubectl apply -f k8s/argocd/applications/external-dns.yaml
-          kubectl apply -f k8s/argocd/applications/root.yaml
+          helm template external-dns-app \
+            k8s/argocd/applications/external-dns \
+            --namespace argocd | kubectl apply -f -
+
+          helm template kube-prometheus-stack-app \
+            k8s/argocd/applications/kube-prometheus-stack \
+            --namespace argocd \
+            --set grafana.acmCertificateArn=${{ inputs.grafana_acm_certificate_arn }} \
+            --set grafana.adminPassword=${{ secrets.GRAFANA_ADMIN_PASSWORD }} \
+            --set grafana.hostname=${{ inputs.grafana_hostname }} \
+            --set telegram.botToken=${{ secrets.TELEGRAM_BOT_TOKEN }} \
+            --set telegram.chatId=${{ secrets.TELEGRAM_CHAT_ID }} \
+            | kubectl apply -f -
+
+          helm template retail-store-app \
+            k8s/argocd/applications/retail-store \
+            --namespace argocd \
+            --set acmCertificateArn=${{ inputs.origin_acm_certificate_arn }} \
+            --set hostname=${{ inputs.hostname }} \
+            --set ui.image.repository=${{ inputs.ui_image }} \
+            --set ui.image.tag=${{ inputs.ui_tag }} \
+            | kubectl apply -f -
+
+          helm template velero-app \
+            k8s/argocd/applications/velero \
+            --namespace argocd \
+            --set velero.bucketName=${{ inputs.velero_bucket_name }} \
+            --set velero.roleArn=${{ inputs.velero_role_arn }} \
+            --set velero.awsRegion=${{ inputs.aws_region }} \
+            | kubectl apply -f -
+
+          helm template cluster-autoscaler-app \
+            k8s/argocd/applications/cluster-autoscaler \
+            --namespace argocd \
+            --set clusterName=${{ inputs.cluster_name }} \
+            --set awsRegion=${{ inputs.aws_region }} \
+            --set clusterAutoscalerRoleArn=${{ inputs.cluster_autoscaler_role_arn }} \
+            | kubectl apply -f -
+
+          helm template kyverno-app \
+            k8s/argocd/applications/kyverno \
+            --namespace argocd | kubectl apply -f -
+
+          helm template root-app \
+            k8s/argocd/applications/root \
+            --namespace argocd | kubectl apply -f -
 
       - name: Wait for all applications to sync
         run: |
@@ -143,6 +224,19 @@ jobs:
           done
           kubectl get applications -n argocd
 
+      - name: Apply Kyverno policies
+        run: |
+          echo "Waiting for Kyverno CRDs..."
+          for i in $(seq 1 60); do
+            if kubectl get crd clusterpolicies.kyverno.io > /dev/null 2>&1; then
+              echo "Kyverno CRDs are ready"
+              break
+            fi
+            echo "  attempt $i/60 — CRDs not ready yet"
+            sleep 10
+          done
+          kubectl apply -f k8s/policies/
+
       - name: Print ArgoCD access info
         run: |
           echo "::notice::ArgoCD user: admin"
@@ -151,8 +245,72 @@ jobs:
           for i in $(seq 1 30); do
             ARGOCD_LB=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
             if [ -n "$ARGOCD_LB" ]; then
-              echo "::notice::ArgoCD UI: https://argocd.shop.whiteforge.ai"
+              echo "::notice::ArgoCD UI: https://${{ inputs.argocd_hostname }}"
               break
             fi
             sleep 10
           done
+
+      - name: Create Grafana service account for AIOps
+        run: |
+          GRAFANA_URL="https://${{ inputs.grafana_hostname }}"
+          echo "Waiting for Grafana at ${GRAFANA_URL}..."
+          for i in $(seq 1 30); do
+            if curl -sf "${GRAFANA_URL}/api/health" > /dev/null 2>&1; then
+              echo "Grafana is reachable"
+              break
+            fi
+            echo "  attempt $i/30"
+            sleep 10
+          done
+
+          # Check if service account already exists
+          SA_ID=$(curl -sf "${GRAFANA_URL}/api/serviceaccounts/search?query=aiops" \
+            -u "admin:${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+            | jq -r '.serviceAccounts[0].id // empty' 2>/dev/null || true)
+
+          if [ -z "$SA_ID" ]; then
+            echo "Creating Grafana service account..."
+            SA_ID=$(curl -sf -X POST "${GRAFANA_URL}/api/serviceaccounts" \
+              -H "Content-Type: application/json" \
+              -u "admin:${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+              -d '{"name":"aiops","role":"Editor","isDisabled":false}' \
+              | jq -r '.id')
+            echo "Created service account ID: $SA_ID"
+          else
+            echo "Service account already exists (ID: $SA_ID)"
+          fi
+
+          # Create a new token
+          TOKEN=$(curl -sf -X POST "${GRAFANA_URL}/api/serviceaccounts/${SA_ID}/tokens" \
+            -H "Content-Type: application/json" \
+            -u "admin:${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+            -d "{\"name\":\"aiops-${GITHUB_SHA::8}\"}" \
+            | jq -r '.key' 2>/dev/null || true)
+
+          if [ -n "$TOKEN" ] && [ "$TOKEN" != "null" ]; then
+            aws ssm put-parameter \
+              --name "/${{ inputs.cluster_name }}/aiops/grafana-token" \
+              --type SecureString \
+              --value "$TOKEN" \
+              --overwrite \
+              --region ${{ inputs.aws_region }}
+            echo "Grafana token stored in SSM"
+          else
+            echo "::warning::Could not create Grafana SA token — AIOps will use placeholder"
+          fi
+
+      - name: Deploy AIOps ECS service
+        run: |
+          ECS_CLUSTER="${{ inputs.cluster_name }}-aiops"
+          echo "Updating AIOps ECS service in cluster ${ECS_CLUSTER}..."
+
+          # Force new deployment to pick up latest image
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service aiops \
+            --force-new-deployment \
+            --region ${{ inputs.aws_region }} > /dev/null 2>&1 || echo "::warning::ECS service update failed — may need first image push"
+
+          AIOPS_HOST=$(echo "${{ inputs.grafana_hostname }}" | sed 's/grafana/aiops/')
+          echo "::notice::AIOps UI: https://${AIOPS_HOST}"

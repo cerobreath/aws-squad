@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-autoscaler
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    chart: cluster-autoscaler
+    repoURL: https://kubernetes.github.io/autoscaler
+    targetRevision: 9.43.2
+    helm:
+      releaseName: cluster-autoscaler
+      valuesObject:
+        autoDiscovery:
+          clusterName: {{ .Values.clusterName }}
+        awsRegion: {{ .Values.awsRegion }}
+        rbac:
+          serviceAccount:
+            create: true
+            name: cluster-autoscaler
+            annotations:
+              eks.amazonaws.com/role-arn: {{ .Values.clusterAutoscalerRoleArn }}
+        extraArgs:
+          balance-similar-node-groups: true
+          skip-nodes-with-system-pods: false
+          scale-down-delay-after-add: 5m
+          scale-down-unneeded-time: 5m
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

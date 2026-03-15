@@ -184,6 +184,24 @@ resource "aws_launch_template" "eks_nodes" {
     http_put_response_hop_limit = 2
   }
 
+  user_data = base64encode(<<-USERDATA
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+--BOUNDARY
+Content-Type: application/node.eks.aws
+
+---
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  kubelet:
+    config:
+      maxPods: 110
+--BOUNDARY--
+USERDATA
+  )
+
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -227,11 +245,13 @@ resource "aws_eks_node_group" "main" {
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_container_registry,
-    aws_eks_pod_identity_association.vpc_cni,
+    aws_eks_addon.vpc_cni,
   ]
 
   tags = {
-    Name = "${local.cluster_name}-node"
+    Name                                          = "${local.cluster_name}-node"
+    "k8s.io/cluster-autoscaler/enabled"           = "true"
+    "k8s.io/cluster-autoscaler/${local.cluster_name}" = "owned"
   }
 }
 
@@ -245,7 +265,14 @@ resource "aws_eks_addon" "vpc_cni" {
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "PRESERVE"
 
-  depends_on = [aws_eks_node_group.main]
+  configuration_values = jsonencode({
+    env = {
+      ENABLE_PREFIX_DELEGATION = "true"
+      WARM_PREFIX_TARGET       = "1"
+    }
+  })
+
+  depends_on = [aws_eks_pod_identity_association.vpc_cni]
 }
 
 resource "aws_eks_addon" "coredns" {
@@ -264,4 +291,52 @@ resource "aws_eks_addon" "kube_proxy" {
   resolve_conflicts_on_update = "PRESERVE"
 
   depends_on = [aws_eks_node_group.main]
+}
+
+# -----------------------------------------------------------------------------
+# EBS CSI Driver — required for PersistentVolumeClaims (Prometheus storage, etc.)
+# -----------------------------------------------------------------------------
+
+resource "aws_iam_role" "ebs_csi" {
+  name = "${local.cluster_name}-ebs-csi-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "pods.eks.amazonaws.com"
+      }
+      Action = [
+        "sts:AssumeRole",
+        "sts:TagSession",
+      ]
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.ebs_csi.name
+}
+
+resource "aws_eks_pod_identity_association" "ebs_csi" {
+  cluster_name    = aws_eks_cluster.main.name
+  namespace       = "kube-system"
+  service_account = "ebs-csi-controller-sa"
+  role_arn        = aws_iam_role.ebs_csi.arn
+
+  depends_on = [aws_eks_addon.pod_identity_agent]
+}
+
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name                = aws_eks_cluster.main.name
+  addon_name                  = "aws-ebs-csi-driver"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "PRESERVE"
+
+  depends_on = [
+    aws_eks_node_group.main,
+    aws_eks_pod_identity_association.ebs_csi,
+  ]
 }

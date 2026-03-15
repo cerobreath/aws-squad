@@ -35,6 +35,28 @@ on:
         value: ${{ jobs.terraform.outputs.origin_acm_certificate_arn }}
       argocd_acm_certificate_arn:
         value: ${{ jobs.terraform.outputs.argocd_acm_certificate_arn }}
+      grafana_acm_certificate_arn:
+        value: ${{ jobs.terraform.outputs.grafana_acm_certificate_arn }}
+      ecr_frontend_url:
+        value: ${{ jobs.terraform.outputs.ecr_frontend_url }}
+      ecr_catalog_url:
+        value: ${{ jobs.terraform.outputs.ecr_catalog_url }}
+      ecr_checkout_url:
+        value: ${{ jobs.terraform.outputs.ecr_checkout_url }}
+      cluster_autoscaler_role_arn:
+        value: ${{ jobs.terraform.outputs.cluster_autoscaler_role_arn }}
+      velero_bucket_name:
+        value: ${{ jobs.terraform.outputs.velero_bucket_name }}
+      velero_role_arn:
+        value: ${{ jobs.terraform.outputs.velero_role_arn }}
+      argocd_hostname:
+        value: ${{ jobs.terraform.outputs.argocd_hostname }}
+      grafana_hostname:
+        value: ${{ jobs.terraform.outputs.grafana_hostname }}
+      ecr_aiops_url:
+        value: ${{ jobs.terraform.outputs.ecr_aiops_url }}
+      aiops_hostname:
+        value: ${{ jobs.terraform.outputs.aiops_hostname }}
 
 jobs:
   terraform:
@@ -48,6 +70,17 @@ jobs:
       lb_controller_role_arn: ${{ steps.tf.outputs.lb_controller_role_arn }}
       origin_acm_certificate_arn: ${{ steps.tf.outputs.origin_acm_certificate_arn }}
       argocd_acm_certificate_arn: ${{ steps.tf.outputs.argocd_acm_certificate_arn }}
+      grafana_acm_certificate_arn: ${{ steps.tf.outputs.grafana_acm_certificate_arn }}
+      ecr_frontend_url: ${{ steps.tf.outputs.ecr_frontend_url }}
+      ecr_catalog_url: ${{ steps.tf.outputs.ecr_catalog_url }}
+      ecr_checkout_url: ${{ steps.tf.outputs.ecr_checkout_url }}
+      cluster_autoscaler_role_arn: ${{ steps.tf.outputs.cluster_autoscaler_role_arn }}
+      velero_bucket_name: ${{ steps.tf.outputs.velero_bucket_name }}
+      velero_role_arn: ${{ steps.tf.outputs.velero_role_arn }}
+      argocd_hostname: ${{ steps.tf.outputs.argocd_hostname }}
+      grafana_hostname: ${{ steps.tf.outputs.grafana_hostname }}
+      ecr_aiops_url: ${{ steps.tf.outputs.ecr_aiops_url }}
+      aiops_hostname: ${{ steps.tf.outputs.aiops_hostname }}
     steps:
       - uses: actions/checkout@v4
 
@@ -80,3 +113,14 @@ jobs:
           echo "lb_controller_role_arn=$(terraform output -raw aws_lb_controller_role_arn)" >> "$GITHUB_OUTPUT"
           echo "origin_acm_certificate_arn=$(terraform output -raw origin_acm_certificate_arn)" >> "$GITHUB_OUTPUT"
           echo "argocd_acm_certificate_arn=$(terraform output -raw argocd_acm_certificate_arn)" >> "$GITHUB_OUTPUT"
+          echo "grafana_acm_certificate_arn=$(terraform output -raw grafana_acm_certificate_arn)" >> "$GITHUB_OUTPUT"
+          echo "ecr_frontend_url=$(terraform output -raw ecr_frontend_url)" >> "$GITHUB_OUTPUT"
+          echo "ecr_catalog_url=$(terraform output -raw ecr_catalog_url)" >> "$GITHUB_OUTPUT"
+          echo "ecr_checkout_url=$(terraform output -raw ecr_checkout_url)" >> "$GITHUB_OUTPUT"
+          echo "cluster_autoscaler_role_arn=$(terraform output -raw cluster_autoscaler_role_arn)" >> "$GITHUB_OUTPUT"
+          echo "velero_bucket_name=$(terraform output -raw velero_bucket_name)" >> "$GITHUB_OUTPUT"
+          echo "velero_role_arn=$(terraform output -raw velero_role_arn)" >> "$GITHUB_OUTPUT"
+          echo "argocd_hostname=$(terraform output -raw argocd_hostname)" >> "$GITHUB_OUTPUT"
+          echo "grafana_hostname=$(terraform output -raw grafana_hostname)" >> "$GITHUB_OUTPUT"
+          echo "ecr_aiops_url=$(terraform output -raw ecr_aiops_url)" >> "$GITHUB_OUTPUT"
+          echo "aiops_hostname=$(terraform output -raw aiops_hostname)" >> "$GITHUB_OUTPUT"

@@ -1,0 +1,239 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 72.6.2
+    helm:
+      releaseName: kube-prometheus-stack
+      valuesObject:
+        # --- Prometheus Operator ---
+        prometheusOperator:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+
+        # --- Prometheus ---
+        prometheus:
+          prometheusSpec:
+            retention: 7d
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 512Mi
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 10Gi
+                  storageClassName: gp2
+            additionalScrapeConfigs:
+              - job_name: retail-store-ui
+                kubernetes_sd_configs:
+                  - role: pod
+                    namespaces:
+                      names:
+                        - retail-store
+                relabel_configs:
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                    action: keep
+                    regex: "true"
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                    action: replace
+                    target_label: __metrics_path__
+                    regex: (.+)
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port, __meta_kubernetes_pod_ip]
+                    action: replace
+                    target_label: __address__
+                    regex: (\d+);(.+)
+                    replacement: $2:$1
+                  - source_labels: [__meta_kubernetes_pod_name]
+                    action: replace
+                    target_label: pod
+                  - source_labels: [__meta_kubernetes_namespace]
+                    action: replace
+                    target_label: namespace
+
+        # --- Alertmanager with Telegram ---
+        alertmanager:
+          alertmanagerSpec:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
+          config:
+            global:
+              resolve_timeout: 5m
+              telegram_api_url: "https://api.telegram.org"
+            route:
+              receiver: telegram
+              group_by: ["alertname", "namespace"]
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 4h
+              routes:
+                # AIOps daemon alerts — dedicated route with shorter repeat
+                - receiver: telegram
+                  matchers:
+                    - source="aiops-daemon"
+                  group_by: ["namespace", "resource"]
+                  group_wait: 30s
+                  group_interval: 2m
+                  repeat_interval: 1h
+                  continue: false
+                # Prometheus-detected critical/warning alerts
+                - receiver: telegram
+                  matchers:
+                    - severity =~ "critical|warning"
+                  continue: false
+                # Silence Watchdog
+                - receiver: "null"
+                  matchers:
+                    - alertname="Watchdog"
+                  continue: false
+            receivers:
+              - name: "null"
+              - name: telegram
+                telegram_configs:
+                  - bot_token: {{ .Values.telegram.botToken | quote }}
+                    chat_id: {{ .Values.telegram.chatId | int }}
+                    parse_mode: HTML
+                    message: |
+                      {{`{{ range .Alerts }}`}}
+                      {{`{{ if eq .Status "firing" }}`}}🔴 <b>FIRING</b>{{`{{ else }}`}}✅ <b>RESOLVED</b>{{`{{ end }}`}}
+                      <b>{{`{{ .Labels.alertname }}`}}</b>
+                      {{`{{ if .Labels.resource }}`}}<b>Resource:</b> {{`{{ .Labels.resource }}`}} ({{`{{ .Labels.namespace }}`}}){{`{{ end }}`}}
+                      {{`{{ .Annotations.summary }}`}}
+                      {{`{{ .Annotations.description }}`}}
+                      <i>Severity: {{`{{ .Labels.severity }}`}}</i>
+                      {{`{{ end }}`}}
+            inhibit_rules:
+              - source_matchers:
+                  - severity="critical"
+                target_matchers:
+                  - severity=~"warning|info"
+                equal: ["namespace", "alertname"]
+              - source_matchers:
+                  - severity="warning"
+                target_matchers:
+                  - severity="info"
+                equal: ["namespace", "alertname"]
+
+        # --- Alert Rules ---
+        additionalPrometheusRulesMap:
+          retail-store-sli:
+            groups:
+              - name: retail-store.sli
+                rules:
+                  - alert: HighErrorRate
+                    expr: |
+                      (
+                        sum(rate(http_server_requests_seconds_count{namespace="retail-store", status=~"5.."}[5m]))
+                        /
+                        sum(rate(http_server_requests_seconds_count{namespace="retail-store"}[5m]))
+                      ) > 0.01
+                    for: 2m
+                    labels:
+                      severity: critical
+                    annotations:
+                      summary: "High 5xx error rate in retail-store"
+                      description: "5xx error rate is above 1% (current: {{`{{ $value | humanizePercentage }}`}})"
+                  - alert: HighAvgLatency
+                    expr: |
+                      (
+                        sum(rate(http_server_requests_seconds_sum{namespace="retail-store"}[5m]))
+                        /
+                        sum(rate(http_server_requests_seconds_count{namespace="retail-store"}[5m]))
+                      ) > 0.5
+                    for: 2m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: "High average latency in retail-store"
+                      description: "Average latency is above 500ms (current: {{`{{ $value | humanizeDuration }}`}})"
+
+        # --- Grafana with NLB + SSL ---
+        grafana:
+          adminPassword: {{ .Values.grafana.adminPassword | quote }}
+          sidecar:
+            dashboards:
+              enabled: true
+              label: grafana_dashboard
+              labelValue: "1"
+              searchNamespace: monitoring
+          service:
+            type: LoadBalancer
+            port: 443
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+              service.beta.kubernetes.io/aws-load-balancer-type: external
+              service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+              service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .Values.grafana.acmCertificateArn }}
+              service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+              service.beta.kubernetes.io/aws-load-balancer-listen-ports: '[{"HTTPS":443}]'
+              external-dns.alpha.kubernetes.io/hostname: {{ .Values.grafana.hostname }}
+          grafana.ini:
+            server:
+              root_url: https://{{ .Values.grafana.hostname }}
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+
+        # --- Node Exporter ---
+        nodeExporter:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+
+        # --- Kube State Metrics ---
+        kubeStateMetrics:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: kube-prometheus-stack-grafana
+      jsonPointers:
+        - /data/admin-password
+        - /data/admin-user
+        - /data/ldap-toml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+      - SkipDryRunOnMissingResource=true
+      - SkipHooks=true

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: sealed-secrets-app
+description: ArgoCD Application for Bitnami Sealed Secrets
+version: 0.1.0

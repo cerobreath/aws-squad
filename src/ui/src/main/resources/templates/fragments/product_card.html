@@ -1,0 +1,50 @@
+<div
+  class="text-sm group"
+  th:fragment="card (product)"
+  xmlns:th="http://www.thymeleaf.org"
+  style="background: #12121e; border: 1px solid rgba(184, 134, 11, 0.15); border-radius: 0.5rem; overflow: hidden; transition: all 0.3s;"
+  onmouseover="this.style.borderColor='rgba(184, 134, 11, 0.4)'; this.style.boxShadow='0 0 20px rgba(184, 134, 11, 0.08)'; this.style.transform='translateY(-3px)';"
+  onmouseout="this.style.borderColor='rgba(184, 134, 11, 0.15)'; this.style.boxShadow='none'; this.style.transform='translateY(0)';"
+>
+  <a href="#" th:href="@{/catalog/{itemId}(itemId=${product.id})}" class="block overflow-hidden">
+    <img
+      src="https://via.placeholder.com/300"
+      alt="Product"
+      class="w-full h-48 object-cover transition-transform duration-500"
+      th:src="@{/assets/img/products/{itemId}.jpg(itemId=${item.id})}"
+      style="border-bottom: 2px solid #b8860b;"
+      onmouseover="this.style.transform='scale(1.05)'"
+      onmouseout="this.style.transform='scale(1)'"
+    />
+  </a>
+  <div class="p-4" style="background: linear-gradient(180deg, #16162a 0%, #0e0e1a 100%);">
+    <!-- Top gold line -->
+    <div style="width: 30px; height: 2px; background: #b8860b; margin-bottom: 0.75rem;"></div>
+    <h3
+      class="mb-2 text-sm cursor-pointer"
+      style="color: #e8d9b0; font-family: 'Cinzel', serif; letter-spacing: 0.05em;"
+    >
+      <a href="#" th:href="@{/catalog/{itemId}(itemId=${product.id})}"
+        th:text="${product.name}" style="color: inherit; text-decoration: none;">Chainsword</a>
+    </h3>
+    <!-- Skull rating -->
+    <div class="flex items-center gap-1 mb-3">
+      <i class="fas fa-skull" th:each="i : ${#numbers.sequence(1, 5)}"
+         th:style="${i <= product.rating} ? 'font-size: 0.55rem; color: #b8860b;' : 'font-size: 0.55rem; color: #2a2a3e;'"></i>
+    </div>
+    <p class="mb-4" style="color: #daa520; font-family: 'Cinzel', serif; font-size: 1rem;">
+      $<th:block th:text="${product.price}">143.00</th:block>
+    </p>
+    <form th:action="@{/cart}" method="POST">
+      <input type="hidden" name="productId" th:value="${product.id}" />
+      <button
+        class="w-full text-white py-2.5 rounded transition duration-300 add-to-cart btn-imperial"
+        href="#"
+        onclick="this.closest('form').submit();return false;"
+      >
+        <i class="fas fa-plus" style="font-size: 0.65rem;"></i>
+        <span th:text="#{button.addtocart}">Requisition</span>
+      </button>
+    </form>
+  </div>
+</div>

@@ -111,3 +111,11 @@ variable "cloudfront_price_class" {
   type        = string
   default     = "PriceClass_100"
 }
+
+# AIOps (ECS Fargate)
+variable "grafana_sa_token" {
+  description = "Grafana service account token for AIOps agent"
+  type        = string
+  sensitive   = true
+  default     = "placeholder"
+}

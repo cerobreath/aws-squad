@@ -1,0 +1,81 @@
+<!doctype html>
+<html
+  lang="en"
+  xmlns:th="http://www.thymeleaf.org"
+  th:fragment="root (rootContent)"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Warhammer AWS 40k — Imperial Armoury</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/assets/img/favicon.ico}" />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css"
+    />
+
+    <!-- Gothic Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Marcellus+SC&family=MedievalSharp&display=swap" rel="stylesheet" />
+
+    <link
+      rel="stylesheet"
+      th:href="@{'/assets/css/theme-'+${#strings.defaultString(theme, 'default')}+'.css'}"
+    />
+
+    <link rel="stylesheet" th:href="@{/assets/css/styles.css}" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: "rgb(var(--primary-color-500))",
+                50: "rgb(var(--primary-color-50))",
+                100: "rgb(var(--primary-color-100))",
+                200: "rgb(var(--primary-color-20))",
+                300: "rgb(var(--primary-color-300))",
+                400: "rgb(var(--primary-color-400))",
+                500: "rgb(var(--primary-color-500))",
+                600: "rgb(var(--primary-color-600))",
+                700: "rgb(var(--primary-color-700))",
+                800: "rgb(var(--primary-color-800))",
+                900: "rgb(var(--primary-color-900))",
+              },
+              wh: {
+                bg: '#0a0a12',
+                panel: '#12121e',
+                card: '#16162a',
+                border: '#b8860b',
+                gold: '#daa520',
+                goldLight: '#f0d060',
+                parchment: '#d4c5a0',
+                textDim: '#8a7a5a',
+                red: '#8b0000',
+                redBright: '#cc1111',
+              }
+            },
+          },
+        },
+      };
+    </script>
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      var retailContextPath = /*[[@{/}]]*/ "";
+      /*]]>*/
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <script
+      th:if="${@environment.getProperty('retail.ui.chat.enabled')} == 'true'"
+      th:src="@{/assets/js/chat.js}"
+    ></script>
+  </head>
+
+  <th:block th:insert="${rootContent}" />
+</html>

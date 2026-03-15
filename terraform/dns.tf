@@ -98,3 +98,36 @@ resource "aws_acm_certificate_validation" "argocd" {
   certificate_arn         = aws_acm_certificate.argocd.arn
   validation_record_fqdns = [for record in cloudflare_record.argocd_acm_validation : record.hostname]
 }
+
+# ACM certificate for Grafana (kube-prometheus-stack) — TLS on NLB
+resource "aws_acm_certificate" "grafana" {
+  domain_name       = local.grafana_domain
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "cloudflare_record" "grafana_acm_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.grafana.domain_validation_options : dvo.domain_name => {
+      name    = dvo.resource_record_name
+      type    = dvo.resource_record_type
+      content = dvo.resource_record_value
+    } if dvo.domain_name == local.grafana_domain
+  }
+
+  zone_id         = var.cloudflare_zone_id
+  name            = each.value.name
+  type            = each.value.type
+  content         = trimsuffix(each.value.content, ".")
+  proxied         = false
+  ttl             = 60
+  allow_overwrite = true
+}
+
+resource "aws_acm_certificate_validation" "grafana" {
+  certificate_arn         = aws_acm_certificate.grafana.arn
+  validation_record_fqdns = [for record in cloudflare_record.grafana_acm_validation : record.hostname]
+}

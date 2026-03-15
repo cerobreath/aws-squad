@@ -22,7 +22,7 @@
                   <span>Warhammer</span>
                   <img
                     class="brand-aws-logo"
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/3840px-Amazon_Web_Services_Logo.svg.png"
+                    src="/assets/img/aws-logo.svg"
                     alt="AWS"
                   />
                   <span>40k</span>
@@ -99,7 +99,7 @@
     </nav>
 
     <!-- HERO SECTION -->
-    <section class="relative flex items-center justify-center overflow-hidden" style="height: 650px;">
+    <section class="relative flex items-center justify-center overflow-hidden" style="min-height: 760px; padding-top: 5.75rem; padding-bottom: 3rem;">
       <div class="absolute inset-0">
         <img th:src="@{/assets/img/hero1.jpg}" alt="Hero" class="w-full h-full object-cover" />
         <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(10,10,18,0.85) 0%, rgba(10,10,18,0.6) 40%, rgba(10,10,18,0.95) 100%);"></div>
@@ -164,24 +164,16 @@
           </a>
         </div>
 
-        <div class="ukraine-solidarity-panel gothic-frame fade-in-up" style="animation-delay: 0.15s;">
-          <div class="ukraine-solidarity-copy">
-            <p class="ukraine-solidarity-kicker">
-              <span>Stand With Ukraine</span>
-            </p>
-            <p class="ukraine-solidarity-text">
-              We support Ukraine, its defenders, and civilians living through Russia's war. Learn how to help without leaving the character of this page behind.
-            </p>
-          </div>
+        <div class="hero-ukraine-banner fade-in-up" style="animation-delay: 0.15s;">
           <a
-            class="ukraine-banner-link"
-            href="https://vshymanskyy.github.io/StandWithUkraine/"
+            class="hero-ukraine-banner-link"
+            href="https://stand-with-ukraine.pp.ua/"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Stand With Ukraine"
           >
             <img
-              class="ukraine-banner-image"
+              class="hero-ukraine-banner-image"
               src="https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg"
               alt="Stand With Ukraine"
             />

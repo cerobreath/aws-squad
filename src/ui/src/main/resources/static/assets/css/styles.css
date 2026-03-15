@@ -348,62 +348,28 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ===== UKRAINE BANNER ===== */
-.ukraine-solidarity-panel {
+.hero-ukraine-banner {
   max-width: 34rem;
-  margin: 2rem auto 0;
-  padding: 1rem;
-  border: 1px solid rgba(218, 165, 32, 0.3);
-  border-top: 2px solid rgba(0, 91, 187, 0.75);
-  border-bottom: 2px solid rgba(255, 213, 0, 0.75);
-  background:
-    linear-gradient(180deg, rgba(18, 18, 30, 0.92) 0%, rgba(10, 10, 18, 0.96) 100%),
-    radial-gradient(circle at top, rgba(0, 91, 187, 0.12), transparent 45%),
-    radial-gradient(circle at bottom, rgba(255, 213, 0, 0.08), transparent 35%);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(6px);
+  margin: 1.8rem auto 0;
 }
 
-.ukraine-solidarity-copy {
-  margin-bottom: 0.85rem;
-}
-
-.ukraine-solidarity-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.45rem;
-  color: #f0d060;
-  font-family: 'Cinzel', serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.ukraine-solidarity-text {
-  color: #b8a88a;
-  font-size: 0.92rem;
-  line-height: 1.55;
-}
-
-.ukraine-banner-link {
+.hero-ukraine-banner-link {
   display: block;
   border-radius: 0.7rem;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.ukraine-banner-link:hover {
+.hero-ukraine-banner-link:hover {
   transform: translateY(-2px);
-  border-color: rgba(240, 208, 96, 0.4);
   box-shadow: 0 0 24px rgba(0, 91, 187, 0.18), 0 0 30px rgba(255, 213, 0, 0.12);
 }
 
-.ukraine-banner-image {
+.hero-ukraine-banner-image {
   display: block;
   width: 100%;
   height: auto;
-  background: #0f1118;
+  filter: drop-shadow(0 0 18px rgba(0, 91, 187, 0.14)) drop-shadow(0 0 18px rgba(255, 213, 0, 0.1));
 }
 
 /* ===== SECTION BACKGROUNDS ===== */
@@ -584,9 +550,9 @@ input:focus, select:focus, textarea:focus {
 }
 
 @media (max-width: 640px) {
-  .ukraine-solidarity-panel {
+  .hero-ukraine-banner {
     margin-top: 1.5rem;
-    padding: 0.85rem;
+    max-width: 28rem;
   }
 
   .minute-of-silence-card {
@@ -666,35 +632,49 @@ input:focus, select:focus, textarea:focus {
 .brand-text {
   font-family: 'Cinzel Decorative', serif;
   letter-spacing: 0.15em;
-  background: linear-gradient(180deg, #f0d060 0%, #b8860b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 8px rgba(184, 134, 11, 0.3));
+  color: #ffffff !important;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.12), 0 0 28px rgba(217, 165, 33, 0.16);
 }
 
 .brand-lockup {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.88rem;
+  font-size: 1rem;
   line-height: 1;
   white-space: nowrap;
 }
 
+.brand-lockup span {
+  display: inline-block;
+}
+
 .brand-aws-logo {
   display: inline-block;
-  height: 1.6rem;
+  height: 1.55rem;
   width: auto;
   vertical-align: middle;
-  margin: 0 0.1rem;
-  filter: brightness(1.06) contrast(1.03) drop-shadow(0 0 6px rgba(255, 255, 255, 0.08));
+  margin: 0 0.14rem;
+  padding: 0.08rem 0.22rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0) 78%);
+  filter:
+    brightness(0)
+    saturate(100%)
+    invert(69%)
+    sepia(64%)
+    saturate(1008%)
+    hue-rotate(8deg)
+    brightness(97%)
+    contrast(92%)
+    drop-shadow(0 0 8px rgba(217, 165, 33, 0.28))
+    drop-shadow(0 0 18px rgba(217, 165, 33, 0.18));
 }
 
 @media (max-width: 640px) {
   .brand-lockup {
     gap: 0.25rem;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     letter-spacing: 0.08em;
   }
 

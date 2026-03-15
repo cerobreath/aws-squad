@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 def get_k8s_mcp_client():
     """Get Kubernetes MCP client running as a local process."""
     cmd = shutil.which("kubectl-mcp")
-    # Also check inside the current venv (shutil.which misses it if PATH isn't set)
     if not cmd:
         venv_bin = Path(sys.executable).parent / "kubectl-mcp"
         if venv_bin.exists():

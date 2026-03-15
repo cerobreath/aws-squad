@@ -19,9 +19,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-install MCP servers so first request doesn't pay the download cost
-RUN uvx kubectl-mcp-server --help > /dev/null 2>&1 || true && \
-    uvx mcp-grafana --help > /dev/null 2>&1 || true
+# Fix kubectl-mcp-server bug: MCPServer.__init__() doesn't accept non_destructive kwarg
+RUN MAIN_PY=$(python -c "import kubectl_mcp_tool, os; print(os.path.join(os.path.dirname(kubectl_mcp_tool.__file__), '__main__.py'))") && \
+    sed -i 's/MCPServer(name="kubernetes", non_destructive=args.non_destructive)/MCPServer(name="kubernetes")/' "$MAIN_PY"
+
+# Pre-install mcp-grafana so first request doesn't pay the download cost
+RUN uvx mcp-grafana --help > /dev/null 2>&1 || true
 
 # Copy application code into aiops package directory
 COPY . ./aiops/

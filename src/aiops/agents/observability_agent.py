@@ -20,6 +20,7 @@ def get_grafana_mcp_client():
         **os.environ,
         "GRAFANA_URL": grafana_url,
         "GRAFANA_API_KEY": grafana_token,
+        "GRAFANA_SERVICE_ACCOUNT_TOKEN": grafana_token,
     }
 
     return MCPClient(

@@ -1,5 +1,6 @@
 """Kubernetes MCP client factory for diagnostic operations."""
 import logging
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -24,7 +25,7 @@ def get_k8s_mcp_client():
             StdioServerParameters(
                 command=cmd,
                 args=[],
-                timeout=60,
+                env={**os.environ},
             )
         )
     )

@@ -16,18 +16,50 @@ spec:
       valuesObject:
         cart:
           fullnameOverride: carts
+          replicaCount: 2
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
+          podAnnotations:
+            lifecycle.kubernetes.io/preStop: "sleep 5"
         catalog:
           fullnameOverride: catalog
+          replicaCount: 2
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
         checkout:
           fullnameOverride: checkout
+          replicaCount: 2
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
           retail:
             checkout:
               endpoints:
                 orders: http://orders:80
         orders:
           fullnameOverride: orders
+          replicaCount: 2
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
         ui:
           fullnameOverride: ui
+          replicaCount: 2
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
           image:
             repository: {{ .Values.ui.image.repository }}
             tag: {{ .Values.ui.image.tag | quote }}

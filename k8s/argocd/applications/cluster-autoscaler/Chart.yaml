@@ -1,0 +1,4 @@
+apiVersion: v2
+name: cluster-autoscaler-app
+description: ArgoCD Application for Cluster Autoscaler
+version: 0.1.0

@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-test-script
+  namespace: retail-store
+data:
+  load-test.js: |
+    import http from 'k6/http';
+    import { check, sleep } from 'k6';
+
+    const BASE_URL = 'http://ui.retail-store.svc.cluster.local:443';
+
+    export const options = {
+      thresholds: {
+        http_req_failed: ['rate<0.01'],
+        http_req_duration: ['p(99)<2000'],
+      },
+      scenarios: {
+        load_test: {
+          executor: 'ramping-vus',
+          stages: [
+            { duration: '30s', target: 50 },
+            { duration: '1m', target: 150 },
+            { duration: '2m', target: 200 },
+            { duration: '1m', target: 200 },
+            { duration: '30s', target: 0 },
+          ],
+        },
+      },
+    };
+
+    export default function () {
+      const pages = [
+        '/',
+        '/catalog',
+        '/catalog?tag=clothing',
+        '/catalog?tag=accessories',
+      ];
+      const page = pages[Math.floor(Math.random() * pages.length)];
+      const res = http.get(`${BASE_URL}${page}`);
+      check(res, {
+        'status is 200': (r) => r.status === 200,
+      });
+      sleep(0.1 + Math.random() * 0.4);
+    }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-load-test
+  namespace: retail-store
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: k6-load-test
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          command: ['k6', 'run', '/scripts/load-test.js']
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: test-script
+              mountPath: /scripts
+      volumes:
+        - name: test-script
+          configMap:
+            name: k6-test-script

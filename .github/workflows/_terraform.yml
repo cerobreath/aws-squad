@@ -43,6 +43,8 @@ on:
         value: ${{ jobs.terraform.outputs.ecr_catalog_url }}
       ecr_checkout_url:
         value: ${{ jobs.terraform.outputs.ecr_checkout_url }}
+      cluster_autoscaler_role_arn:
+        value: ${{ jobs.terraform.outputs.cluster_autoscaler_role_arn }}
       velero_bucket_name:
         value: ${{ jobs.terraform.outputs.velero_bucket_name }}
       velero_role_arn:
@@ -68,6 +70,7 @@ jobs:
       ecr_frontend_url: ${{ steps.tf.outputs.ecr_frontend_url }}
       ecr_catalog_url: ${{ steps.tf.outputs.ecr_catalog_url }}
       ecr_checkout_url: ${{ steps.tf.outputs.ecr_checkout_url }}
+      cluster_autoscaler_role_arn: ${{ steps.tf.outputs.cluster_autoscaler_role_arn }}
       velero_bucket_name: ${{ steps.tf.outputs.velero_bucket_name }}
       velero_role_arn: ${{ steps.tf.outputs.velero_role_arn }}
       argocd_hostname: ${{ steps.tf.outputs.argocd_hostname }}
@@ -108,6 +111,7 @@ jobs:
           echo "ecr_frontend_url=$(terraform output -raw ecr_frontend_url)" >> "$GITHUB_OUTPUT"
           echo "ecr_catalog_url=$(terraform output -raw ecr_catalog_url)" >> "$GITHUB_OUTPUT"
           echo "ecr_checkout_url=$(terraform output -raw ecr_checkout_url)" >> "$GITHUB_OUTPUT"
+          echo "cluster_autoscaler_role_arn=$(terraform output -raw cluster_autoscaler_role_arn)" >> "$GITHUB_OUTPUT"
           echo "velero_bucket_name=$(terraform output -raw velero_bucket_name)" >> "$GITHUB_OUTPUT"
           echo "velero_role_arn=$(terraform output -raw velero_role_arn)" >> "$GITHUB_OUTPUT"
           echo "argocd_hostname=$(terraform output -raw argocd_hostname)" >> "$GITHUB_OUTPUT"

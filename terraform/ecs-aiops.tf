@@ -121,7 +121,7 @@ resource "aws_eks_access_policy_association" "aiops" {
   depends_on = [aws_eks_access_entry.aiops]
 }
 
-# Allow ECS tasks to reach the EKS API (port 443) via the private endpoint
+# Allow ECS tasks to reach the EKS API server (port 443) via private endpoint
 resource "aws_security_group_rule" "aiops_to_eks" {
   type                     = "ingress"
   from_port                = 443

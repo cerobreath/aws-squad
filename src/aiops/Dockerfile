@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN uvx kubectl-mcp-server --help > /dev/null 2>&1 || true && \
     uvx mcp-grafana --help > /dev/null 2>&1 || true
 
-# Copy application code
-COPY . .
+# Copy application code into aiops package directory
+COPY . ./aiops/
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
